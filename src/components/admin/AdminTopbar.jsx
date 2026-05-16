@@ -1,7 +1,10 @@
 import React from 'react';
-import ThemeToggle from '../common/ThemeToggle';
+import NotificationBell from '../NotificationBell';
+import { useAuth } from '../../context/AuthContext';
 
 const AdminTopbar = ({ setIsMobileOpen }) => {
+  const { user } = useAuth();
+
   return (
     <header className="h-20 bg-white/80 backdrop-blur-md border-b border-gray-100 shadow-sm flex items-center justify-between px-4 sm:px-6 z-10 sticky top-0 transition-colors duration-300 font-semibold">
       <div className="flex items-center gap-4">
@@ -28,26 +31,20 @@ const AdminTopbar = ({ setIsMobileOpen }) => {
       </div>
 
       <div className="flex items-center gap-3 sm:gap-4">
-        {/* ThemeToggle removed or disabled for unified white theme */}
-        
         {/* Notifications */}
-        <button className="relative p-2 text-gray-500 hover:bg-gray-100 rounded-full transition-colors">
-          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-6 h-6">
-            <path strokeLinecap="round" strokeLinejoin="round" d="M14.857 17.082a23.848 23.848 0 005.454-1.31A8.967 8.967 0 0118 9.75v-.7V9A6 6 0 006 9v.75a8.967 8.967 0 01-2.312 6.022c1.733.64 3.56 1.085 5.455 1.31m5.714 0a24.255 24.255 0 01-5.714 0m5.714 0a3 3 0 11-5.714 0" />
-          </svg>
-          <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-red-500 rounded-full border border-white"></span>
-        </button>
+        <NotificationBell />
 
-        {/* Profile Dropdown Trigger */}
-        <button className="flex items-center gap-2 p-1 pl-2 pr-3 bg-gray-50 border border-gray-200 rounded-full hover:bg-gray-100 transition-colors">
-          <div className="w-8 h-8 rounded-full bg-[#FF385C]/20 text-[#FF385C] flex items-center justify-center font-bold text-sm">
-            A
-          </div>
-          <span className="text-sm font-bold text-gray-900 hidden sm:block">Admin</span>
-          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-4 h-4 text-gray-400">
-            <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" />
-          </svg>
-        </button>
+        {/* Profile */}
+        <div className="flex items-center gap-2 p-1 pl-2 pr-3 bg-gray-50 border border-gray-200 rounded-full hover:bg-gray-100 transition-colors">
+          {user?.avatar ? (
+            <img src={user.avatar} alt="Admin" className="w-8 h-8 rounded-full object-cover border border-gray-200" />
+          ) : (
+            <div className="w-8 h-8 rounded-full bg-[#FF385C]/20 text-[#FF385C] flex items-center justify-center font-bold text-sm">
+              {user ? user.name?.charAt(0).toUpperCase() : 'A'}
+            </div>
+          )}
+          <span className="text-sm font-bold text-gray-900 hidden sm:block">{user?.name || 'Admin'}</span>
+        </div>
       </div>
     </header>
   );

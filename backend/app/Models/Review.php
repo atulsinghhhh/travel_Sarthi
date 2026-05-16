@@ -25,4 +25,9 @@ class Review extends Model
     {
         return $this->belongsTo(Booking::class);
     }
+
+    public function hotel()
+    {
+        return $this->belongsTo(Hotel::class);
+    }
 }

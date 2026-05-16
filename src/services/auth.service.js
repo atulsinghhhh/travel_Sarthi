@@ -33,6 +33,16 @@ const AuthService = {
    */
   getCurrentUser: () => {
     return api.get('/user');
+  },
+
+  updateAvatar: (formData) => {
+    return api.post('/user/avatar', formData, {
+      headers: { 'Content-Type': 'multipart/form-data' }
+    });
+  },
+
+  updateProfile: (data) => {
+    return api.post('/user/profile', data);
   }
 };
 

@@ -1,5 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { couponService } from '../../services/coupon.service';
 import toast from 'react-hot-toast';
 
 const BookingSidebar = ({ pricePerNight }) => {
@@ -7,6 +8,36 @@ const BookingSidebar = ({ pricePerNight }) => {
   const [checkIn, setCheckIn] = useState('');
   const [checkOut, setCheckOut] = useState('');
   const [guests, setGuests] = useState(1);
+
+  const [couponCode, setCouponCode] = useState('');
+  const [discountPercent, setDiscountPercent] = useState(0);
+  const [coupons, setCoupons] = useState([]);
+
+  useEffect(() => {
+    const fetchCoupons = async () => {
+      try {
+        const { data } = await couponService.getAll();
+        setCoupons(data || []);
+      } catch (err) {
+        console.error('Failed to load coupons', err);
+      }
+    };
+    fetchCoupons();
+  }, []);
+
+  const handleApplyCoupon = async (codeToApply) => {
+    const code = codeToApply || couponCode;
+    if (!code) return;
+    try {
+      const { data } = await couponService.validate(code);
+      setDiscountPercent(data.discount_percent);
+      if (codeToApply) setCouponCode(codeToApply);
+      toast.success(`Coupon ${code} applied! ${data.discount_percent}% off.`);
+    } catch (err) {
+      toast.error(err.response?.data?.message || 'Invalid or expired coupon');
+      setDiscountPercent(0);
+    }
+  };
 
   // Simple calculation logic
   const calculateDays = () => {
@@ -22,8 +53,10 @@ const BookingSidebar = ({ pricePerNight }) => {
 
   const days = calculateDays();
   const basePrice = pricePerNight * days;
-  const taxes = Math.round(basePrice * 0.1); // 10% tax
-  const total = basePrice + taxes;
+  const discountAmount = Math.round((basePrice * discountPercent) / 100);
+  const discountedBase = basePrice - discountAmount;
+  const taxes = Math.round(discountedBase * 0.1); // 10% tax
+  const total = discountedBase + taxes;
 
   const handleReserve = () => {
     if (!checkIn || !checkOut) {
@@ -77,12 +110,59 @@ const BookingSidebar = ({ pricePerNight }) => {
         </div>
       </div>
 
+      {/* Available Coupons */}
+      {coupons.length > 0 && (
+        <div className="mb-4">
+          <span className="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-2">Available Coupons</span>
+          <div className="flex flex-wrap gap-2">
+            {coupons.map((c) => (
+              <button
+                key={c.code}
+                type="button"
+                onClick={() => handleApplyCoupon(c.code)}
+                className={`text-xs font-bold px-2.5 py-1.5 rounded-lg border transition-all ${
+                  couponCode.toUpperCase() === c.code.toUpperCase() && discountPercent > 0
+                    ? 'bg-[#FF385C] text-white border-[#FF385C] shadow-sm'
+                    : 'bg-emerald-50 text-emerald-700 border-emerald-200 hover:bg-emerald-100'
+                }`}
+              >
+                🏷️ {c.code} ({c.discount_percent}% OFF)
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Coupon Input */}
+      <div className="flex gap-2 mb-6">
+        <input 
+          type="text" 
+          value={couponCode} 
+          onChange={(e) => setCouponCode(e.target.value)} 
+          placeholder="Enter coupon code" 
+          className="w-full bg-gray-50 border border-gray-200 rounded-xl p-3 text-sm text-gray-900 font-semibold focus:bg-white focus:ring-2 focus:ring-[#FF385C]/20 focus:border-[#FF385C] outline-none uppercase transition-all"
+        />
+        <button 
+          type="button" 
+          onClick={() => handleApplyCoupon()} 
+          className="bg-gray-900 hover:bg-black text-white px-4 py-3 rounded-xl text-sm font-bold transition-colors"
+        >
+          Apply
+        </button>
+      </div>
+
       {/* Price Breakdown */}
       <div className="border-t border-gray-100 pt-4 space-y-3 mb-6 text-sm font-medium">
         <div className="flex justify-between text-gray-600">
           <span>${pricePerNight} x {days} nights</span>
           <span className="text-gray-900 font-bold">${basePrice}</span>
         </div>
+        {discountPercent > 0 && (
+          <div className="flex justify-between text-emerald-600 font-bold">
+            <span>Discount ({discountPercent}%)</span>
+            <span>-${discountAmount}</span>
+          </div>
+        )}
         <div className="flex justify-between text-gray-600">
           <span>Taxes & Fees (10%)</span>
           <span className="text-gray-900 font-bold">${taxes}</span>

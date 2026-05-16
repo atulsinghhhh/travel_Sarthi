@@ -1,59 +1,129 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# ⚙️ Travel Sarthi - Laravel 11 REST API Backend
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+This directory houses the robust, secure REST API backend for **Travel Sarthi**, engineered with Laravel 11. It provides powerful data management, secure authentication via Laravel Sanctum, persistent object storage with MinIO S3, and comprehensive endpoints for hotel bookings, curated travel packages, discount coupons, real-time notifications, and user reviews.
 
-## About Laravel
+---
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+## 🏛️ Backend Architecture & Core Systems
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+### 🔐 1. Authentication & Security (Laravel Sanctum)
+- **Token-Based Auth**: Secure API token generation for stateless authentication across web and mobile clients.
+- **Role-Based Access Control**: Middleware protection isolating standard users from administrative endpoints.
+- **Context Persistence**: Secure profile updates and token validation endpoints supporting persistent frontend user sessions.
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+### 🗄️ 2. MinIO S3 Storage Integration
+- **Flysystem S3 Driver**: Configured directly in `config/filesystems.php` to communicate seamlessly with local Docker-based MinIO storage (`http://localhost:9000`).
+- **Dynamic Asset Management**: Avatars, hotel showcase photos, and package banners are securely uploaded and served from the public `travelsarthi` bucket.
+- **Local Fallback**: Built-in support for standard local storage (`storage/app/public`) when S3 containers are offline.
 
-## Learning Laravel
+### ⚡ 3. Eloquent ORM & Relational Modeling
+- **Hotels & Rooms**: Multi-tier pricing, room inventory management, and amenity tagging.
+- **Curated Packages**: Itinerary day-by-day mapping, inclusions/exclusions, and dynamic availability.
+- **Bookings**: Transaction tracking, booking statuses (pending, confirmed, cancelled), coupon discount deductions, and tax calculations.
+- **Polymorphic / Unified Reviews**: Flexible rating and commentary system attached to both hotels and travel packages.
+- **Coupons**: Expiry dates, minimum spend thresholds, discount percentage / fixed amount calculations.
+- **Notifications**: System-wide notifications with read/unread tracking and batch actions.
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework. You can also check out [Laravel Learn](https://laravel.com/learn), where you will be guided through building a modern Laravel application.
+---
 
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+## 🚀 Getting Started & Installation
 
-## Laravel Sponsors
+### 1. Requirements
+- PHP 8.2 or higher
+- Composer (v2+)
+- SQLite / MySQL
+- MinIO Docker Container (running on port 9000)
 
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the [Laravel Partners program](https://partners.laravel.com).
+### 2. Environment Configuration
+Clone the repository and set up your `.env` file:
+```bash
+cp .env.example .env
+```
+Ensure your database and S3 storage settings match your setup:
+```env
+APP_NAME="Travel Sarthi API"
+APP_ENV=local
+APP_KEY=
+APP_DEBUG=true
+APP_URL=http://localhost:8000
 
-### Premium Partners
+DB_CONNECTION=sqlite
 
-- **[Vehikl](https://vehikl.com)**
-- **[Tighten Co.](https://tighten.co)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Curotec](https://www.curotec.com/services/technologies/laravel)**
-- **[DevSquad](https://devsquad.com/hire-laravel-developers)**
-- **[Redberry](https://redberry.international/laravel-development)**
-- **[Active Logic](https://activelogic.com)**
+FILESYSTEM_DISK=s3
 
-## Contributing
+AWS_ACCESS_KEY_ID=minioadmin
+AWS_SECRET_ACCESS_KEY=minioadmin
+AWS_DEFAULT_REGION=us-east-1
+AWS_BUCKET=travelsarthi
+AWS_ENDPOINT=http://127.0.0.1:9000
+AWS_USE_PATH_STYLE_ENDPOINT=true
+```
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+### 3. Install Dependencies & Migrate
+Install PHP packages, generate your app encryption key, and seed the database with initial sample data:
+```bash
+composer install
+php artisan key:generate
+php artisan migrate --seed
+php artisan storage:link
+```
+> **Note**: Running `migrate --seed` populates the database with default administrator credentials, sample luxury hotels, curated packages, active discount coupons, and mock reviews.
 
-## Code of Conduct
+### 4. Start Development Server
+Launch the built-in PHP development server:
+```bash
+php artisan serve
+```
+The REST API will be accessible at `http://localhost:8000/api`.
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+---
 
-## Security Vulnerabilities
+## 📡 API Endpoints Overview
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+All API endpoints are prefixed with `/api`.
 
-## License
+### **Authentication (`/auth`)**
+- `POST /api/register` - Register a new user account.
+- `POST /api/login` - Authenticate user and issue Sanctum token.
+- `POST /api/logout` - Revoke current user token (Requires Auth).
+- `GET /api/user` - Get authenticated user profile details.
+- `POST /api/user/avatar` - Upload a custom user avatar to MinIO S3.
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+### **Hotels & Packages (`/hotels`, `/packages`)**
+- `GET /api/hotels` - List all luxury hotels with filtering & search.
+- `GET /api/hotels/{id}` - Retrieve detailed hotel showcase, room availability, and guest reviews.
+- `GET /api/packages` - List all curated holiday packages.
+- `GET /api/packages/{id}` - Retrieve package itinerary, inclusions, and pricing.
+
+### **Bookings (`/bookings`)**
+- `GET /api/bookings` - List user's active and historical bookings (Requires Auth).
+- `POST /api/bookings` - Submit a new hotel or package booking.
+- `GET /api/bookings/{id}` - Retrieve booking receipt and status.
+
+### **Coupons (`/coupons`)**
+- `GET /api/coupons` - List active promotional coupons.
+- `POST /api/coupons/validate` - Validate a promo code against cart items and calculate discount.
+
+### **Reviews (`/reviews`)**
+- `GET /api/reviews` - Fetch reviews for specific properties or packages.
+- `POST /api/reviews` - Submit a guest review and star rating (Requires Auth).
+- `POST /api/reviews/{id}/helpful` - Upvote a review as helpful.
+- `POST /api/reviews/{id}/reply` - Post an official admin response (Admin Only).
+
+### **Notifications (`/notifications`)**
+- `GET /api/notifications` - Fetch user's unread & recent notifications.
+- `POST /api/notifications/mark-read` - Mark all notifications as read.
+
+---
+
+## 🛠️ Testing & Artisan Utilities
+
+Run test suites to ensure endpoint integrity and Sanctum authentication stability:
+```bash
+php artisan test
+```
+
+To clear all cache configurations during deployment or debugging:
+```bash
+php artisan optimize:clear
+```

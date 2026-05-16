@@ -26,6 +26,7 @@ const Checkout = () => {
   const [couponCode, setCouponCode] = useState('');
   const [discount, setDiscount] = useState(0);
   const [couponError, setCouponError] = useState('');
+  const [coupons, setCoupons] = useState([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const { register, handleSubmit, watch, formState: { errors } } = useForm({
@@ -41,6 +42,7 @@ const Checkout = () => {
       return;
     }
     fetchPackage();
+    fetchCoupons();
   }, [packageId]);
 
   const fetchPackage = async () => {
@@ -55,13 +57,24 @@ const Checkout = () => {
     }
   };
 
-  const handleApplyCoupon = async () => {
-    if (!couponCode) return;
+  const fetchCoupons = async () => {
+    try {
+      const { data } = await couponService.getAll();
+      setCoupons(data || []);
+    } catch (err) {
+      console.error('Failed to load coupons', err);
+    }
+  };
+
+  const handleApplyCoupon = async (codeToApply) => {
+    const code = typeof codeToApply === 'string' ? codeToApply : couponCode;
+    if (!code) return;
     try {
       setCouponError('');
-      const { data } = await couponService.validate(couponCode);
+      const { data } = await couponService.validate(code);
       setDiscount(data.discount_percent);
-      toast.success('Coupon applied successfully!');
+      if (typeof codeToApply === 'string') setCouponCode(codeToApply);
+      toast.success(`Coupon ${code} applied successfully! ${data.discount_percent}% off.`);
     } catch (error) {
       setDiscount(0);
       setCouponError(error.response?.data?.message || 'Invalid coupon code');
@@ -136,7 +149,31 @@ const Checkout = () => {
           </div>
 
           <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
-            <h2 className="text-xl font-bold mb-4 text-gray-800">Apply Coupon</h2>
+            <h2 className="text-xl font-bold mb-3 text-gray-800">Apply Coupon</h2>
+            
+            {/* Available Coupons */}
+            {coupons.length > 0 && (
+              <div className="mb-4">
+                <span className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Available Offers</span>
+                <div className="flex flex-wrap gap-2">
+                  {coupons.map((c) => (
+                    <button
+                      key={c.code}
+                      type="button"
+                      onClick={() => handleApplyCoupon(c.code)}
+                      className={`text-xs font-bold px-3 py-1.5 rounded-lg border transition-all ${
+                        couponCode.toUpperCase() === c.code.toUpperCase() && discount > 0
+                          ? 'bg-[#FF385C] text-white border-[#FF385C] shadow-sm'
+                          : 'bg-emerald-50 text-emerald-700 border-emerald-200 hover:bg-emerald-100'
+                      }`}
+                    >
+                      🏷️ {c.code} ({c.discount_percent}% OFF)
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+
             <div className="flex gap-3">
               <input 
                 type="text" 
@@ -147,8 +184,8 @@ const Checkout = () => {
               />
               <button 
                 type="button" 
-                onClick={handleApplyCoupon}
-                className="bg-gray-900 text-white px-6 py-3 rounded-xl hover:bg-black transition font-semibold"
+                onClick={() => handleApplyCoupon()}
+                className="bg-gray-900 text-white px-6 py-3 rounded-xl hover:bg-black transition font-bold text-sm"
               >
                 Apply
               </button>

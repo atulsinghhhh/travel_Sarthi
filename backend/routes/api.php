@@ -10,6 +10,7 @@ use App\Http\Controllers\ReviewController;
 use App\Http\Controllers\FavoriteController;
 use App\Http\Controllers\CouponController;
 use App\Http\Controllers\TravellerController;
+use App\Http\Controllers\AdminAnalyticsController;
 
 /*
 |--------------------------------------------------------------------------
@@ -33,6 +34,8 @@ Route::middleware('auth:sanctum')->group(function () {
     // Auth
     Route::post('/logout', [AuthController::class, 'logout']);
     Route::get('/user', [AuthController::class, 'me']);
+    Route::post('/user/avatar', [AuthController::class, 'updateAvatar']);
+    Route::post('/user/profile', [AuthController::class, 'updateProfile']);
 
     // Admin Hotel Management
     Route::post('/admin/hotels', [HotelController::class, 'store']);
@@ -55,6 +58,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/reviews/{id}/helpful', [ReviewController::class, 'helpful']);
 
     // Coupons
+    Route::get('/coupons', [CouponController::class, 'index']);
     Route::post('/coupons', [CouponController::class, 'store']);
     Route::post('/coupons/validate', [CouponController::class, 'validateCoupon']);
 

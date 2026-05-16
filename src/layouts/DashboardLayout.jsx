@@ -3,6 +3,7 @@ import { Outlet, NavLink, Link, useNavigate } from 'react-router-dom';
 import dashboardData from '../data/dashboardData.json';
 import { Menu, Search, Heart, Briefcase, User, Globe } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
+import NotificationBell from '../components/NotificationBell';
 
 const DashboardLayout = () => {
   const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
@@ -63,13 +64,14 @@ const DashboardLayout = () => {
             </nav>
 
             {/* Right side: Profile Menu */}
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-3">
               <Link to="/" className="text-gray-900 hover:bg-gray-100 px-4 py-2 rounded-full text-sm font-semibold hidden md:block transition">
                 Switch to exploring
               </Link>
+              <NotificationBell />
               <button className="p-2 hover:bg-gray-100 rounded-full transition hidden md:block">
                 <Globe className="w-5 h-5 text-gray-700" />
-            </button>
+              </button>
               
               <div className="relative ml-2">
                 <button 

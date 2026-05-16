@@ -29,5 +29,33 @@ services:
       - mysql
     restart: unless-stopped
 
+  minio:
+    image: minio/minio:latest
+    container_name: travelsarthi_minio
+    environment:
+      MINIO_ROOT_USER: admin
+      MINIO_ROOT_PASSWORD: password123
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    command: server /data --console-address ":9001"
+    volumes:
+      - minio_data:/data
+    restart: unless-stopped
+
+  minio-setup:
+    image: minio/mc:latest
+    container_name: travelsarthi_minio_setup
+    depends_on:
+      - minio
+    entrypoint: >
+      /bin/sh -c "
+      sleep 5;
+      /usr/bin/mc alias set myminio http://minio:9000 admin password123;
+      /usr/bin/mc mb myminio/travelsarthi --ignore-existing;
+      /usr/bin/mc anonymous set download myminio/travelsarthi;
+      "
+
 volumes:
   mysql_data:
+  minio_data:

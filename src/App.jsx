@@ -17,6 +17,7 @@ import PackageDetails from './pages/PackageDetails';
 import Checkout from './pages/Checkout';
 import About from './pages/About';
 import Contact from './pages/Contact';
+import Help from './pages/Help';
 
 // Dashboard Pages
 import DashboardHome from './pages/dashboard/DashboardHome';
@@ -65,6 +66,7 @@ function App() {
           <Route path="checkout" element={<ProtectedRoute><Checkout /></ProtectedRoute>} />
           <Route path="about" element={<About />} />
           <Route path="contact" element={<Contact />} />
+          <Route path="help" element={<Help />} />
         </Route>
 
         {/* Dashboard Routes with DashboardLayout */}

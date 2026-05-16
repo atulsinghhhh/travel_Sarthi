@@ -3,6 +3,7 @@ import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { Search, Globe, Menu, User } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import Modal from './Modal';
+import NotificationBell from './NotificationBell';
 
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -78,6 +79,8 @@ const Navbar = () => {
               <Search size={16} className="text-[#FF385C]" /> 
               <span className="hidden sm:inline">Search Anywhere</span>
             </button>
+
+            {user && <NotificationBell />}
 
             <button className="hidden md:flex items-center justify-center w-10 h-10 hover:bg-gray-100 rounded-full transition-colors">
               <Globe className="w-5 h-5 text-gray-700" />

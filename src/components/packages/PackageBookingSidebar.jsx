@@ -1,18 +1,63 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { couponService } from '../../services/coupon.service';
+import toast from 'react-hot-toast';
 
 const PackageBookingSidebar = ({ price }) => {
+  const navigate = useNavigate();
   const [date, setDate] = useState('');
   const [adults, setAdults] = useState(2);
   const [children, setChildren] = useState(0);
 
+  const [couponCode, setCouponCode] = useState('');
+  const [discountPercent, setDiscountPercent] = useState(0);
+  const [coupons, setCoupons] = useState([]);
+
+  useEffect(() => {
+    const fetchCoupons = async () => {
+      try {
+        const { data } = await couponService.getAll();
+        setCoupons(data || []);
+      } catch (err) {
+        console.error('Failed to load coupons', err);
+      }
+    };
+    fetchCoupons();
+  }, []);
+
+  const handleApplyCoupon = async (codeToApply) => {
+    const code = codeToApply || couponCode;
+    if (!code) return;
+    try {
+      const { data } = await couponService.validate(code);
+      setDiscountPercent(data.discount_percent);
+      if (codeToApply) setCouponCode(codeToApply);
+      toast.success(`Coupon ${code} applied! ${data.discount_percent}% off.`);
+    } catch (err) {
+      toast.error(err.response?.data?.message || 'Invalid or expired coupon');
+      setDiscountPercent(0);
+    }
+  };
+
   const totalTravelers = adults + children;
   
-  // Package calculation logic (e.g. children are 50% off)
+  // Package calculation logic
   const adultPrice = price * adults;
   const childPrice = (price * 0.5) * children;
-  const basePrice = adultPrice + childPrice;
+  const rawBase = adultPrice + childPrice;
+  const discountAmount = Math.round((rawBase * discountPercent) / 100);
+  const basePrice = rawBase - discountAmount;
   const taxes = Math.round(basePrice * 0.12); // 12% tax/fees
   const total = basePrice + taxes;
+
+  const handleReserve = () => {
+    if (!date) {
+      toast.error('Please select a travel date.');
+      return;
+    }
+    toast.success('Package booked successfully! Your itinerary is being prepared.');
+    navigate('/dashboard/bookings');
+  };
 
   return (
     <div className="bg-white rounded-3xl p-8 border border-gray-100 shadow-xl sticky top-24">
@@ -74,6 +119,47 @@ const PackageBookingSidebar = ({ price }) => {
         </div>
       </div>
 
+      {/* Available Coupons */}
+      {coupons.length > 0 && (
+        <div className="mb-4">
+          <span className="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-2">Available Coupons</span>
+          <div className="flex flex-wrap gap-2">
+            {coupons.map((c) => (
+              <button
+                key={c.code}
+                type="button"
+                onClick={() => handleApplyCoupon(c.code)}
+                className={`text-xs font-bold px-2.5 py-1.5 rounded-lg border transition-all ${
+                  couponCode.toUpperCase() === c.code.toUpperCase() && discountPercent > 0
+                    ? 'bg-[#FF385C] text-white border-[#FF385C] shadow-sm'
+                    : 'bg-emerald-50 text-emerald-700 border-emerald-200 hover:bg-emerald-100'
+                }`}
+              >
+                🏷️ {c.code} ({c.discount_percent}% OFF)
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Coupon Input */}
+      <div className="flex gap-2 mb-8">
+        <input 
+          type="text" 
+          value={couponCode} 
+          onChange={(e) => setCouponCode(e.target.value)} 
+          placeholder="Enter coupon code" 
+          className="w-full bg-gray-50 border border-gray-200 rounded-xl p-3.5 text-sm text-gray-900 font-semibold focus:bg-white focus:ring-2 focus:ring-[#FF385C]/20 focus:border-[#FF385C] outline-none uppercase transition-all"
+        />
+        <button 
+          type="button" 
+          onClick={() => handleApplyCoupon()} 
+          className="bg-gray-900 hover:bg-black text-white px-5 py-3.5 rounded-xl text-sm font-bold transition-colors"
+        >
+          Apply
+        </button>
+      </div>
+
       {/* Price Breakdown */}
       <div className="bg-gray-50 rounded-2xl p-6 mb-8 space-y-3 font-medium text-sm">
         <div className="flex justify-between text-gray-600 font-medium">
@@ -86,6 +172,12 @@ const PackageBookingSidebar = ({ price }) => {
             <span className="text-gray-900 font-bold">${childPrice}</span>
           </div>
         )}
+        {discountPercent > 0 && (
+          <div className="flex justify-between text-emerald-600 font-bold">
+            <span>Discount ({discountPercent}%)</span>
+            <span>-${discountAmount}</span>
+          </div>
+        )}
         <div className="flex justify-between text-gray-600 font-medium">
           <span>Taxes & Fees (12%)</span>
           <span className="text-gray-900 font-bold">${taxes}</span>
@@ -96,7 +188,10 @@ const PackageBookingSidebar = ({ price }) => {
         </div>
       </div>
 
-      <button className="w-full py-4 bg-[#FF385C] text-white rounded-2xl font-bold text-lg shadow-lg hover:shadow-xl hover:bg-[#D70466] transform hover:-translate-y-1 transition-all">
+      <button 
+        onClick={handleReserve}
+        className="w-full py-4 bg-[#FF385C] text-white rounded-2xl font-bold text-lg shadow-lg hover:shadow-xl hover:bg-[#D70466] transform hover:-translate-y-1 transition-all"
+      >
         Book Package Now
       </button>
       

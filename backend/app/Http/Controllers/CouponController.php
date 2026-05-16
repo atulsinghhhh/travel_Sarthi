@@ -31,4 +31,10 @@ class CouponController extends Controller
         }
         return response()->json($coupon);
     }
+
+    public function index()
+    {
+        $coupons = Coupon::where('expiry_date', '>=', now())->get();
+        return response()->json($coupons);
+    }
 }

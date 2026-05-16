@@ -20,8 +20,24 @@ class HotelController extends Controller
 
     public function show($id)
     {
-        $hotel = Hotel::with('rooms')->findOrFail($id);
-        return response()->json($hotel);
+        $hotel = Hotel::with(['rooms', 'reviews.user'])->findOrFail($id);
+        
+        $formattedReviews = $hotel->reviews->map(function ($r) {
+            return [
+                'id' => $r->id,
+                'userName' => $r->user->name ?? 'Guest Traveler',
+                'userImage' => $r->user->avatar ?? 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?ixlib=rb-4.0.3&auto=format&fit=crop&w=150&q=80',
+                'date' => $r->created_at ? $r->created_at->diffForHumans() : 'Recently',
+                'rating' => $r->rating,
+                'text' => $r->comment ?? 'Wonderful experience and stay.',
+                'title' => $r->title ?? 'Great Stay!'
+            ];
+        });
+
+        $hotelData = $hotel->toArray();
+        $hotelData['reviews'] = $formattedReviews;
+        
+        return response()->json($hotelData);
     }
 
     public function store(Request $request)
