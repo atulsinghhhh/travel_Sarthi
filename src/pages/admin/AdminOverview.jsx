@@ -1,107 +1,150 @@
-import React from 'react';
-import FadeUp from '../../components/common/FadeUp';
-import { StaggerContainer, StaggerItem } from '../../components/common/StaggerContainer';
-import adminData from '../../data/adminData.json';
-import { AreaChart, Area, ResponsiveContainer, Tooltip } from 'recharts';
-
-const StatCard = ({ title, value, icon, colorClass }) => (
-  <div className="bg-white dark:bg-gray-900 p-6 rounded-2xl border border-gray-100 dark:border-gray-800 shadow-sm flex items-center gap-4 group hover:shadow-md transition-shadow">
-    <div className={`w-14 h-14 rounded-2xl flex items-center justify-center text-2xl bg-opacity-10 dark:bg-opacity-20 group-hover:scale-110 transition-transform ${colorClass}`}>
-      {icon}
-    </div>
-    <div>
-      <p className="text-gray-500 dark:text-gray-400 text-sm font-medium mb-1">{title}</p>
-      <h3 className="text-2xl font-bold text-dark dark:text-white">{value}</h3>
-    </div>
-  </div>
-);
+import React, { useState, useEffect } from 'react';
+import { adminService } from '../../services/admin.service';
+import { bookingService } from '../../services/booking.service';
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
+import { Users, TrendingUp, DollarSign, Package } from 'lucide-react';
+import toast from 'react-hot-toast';
 
 const AdminOverview = () => {
-  const { stats, recentBookings, analytics } = adminData;
+  const [stats, setStats] = useState({ users: 0, bookings: 0, revenue: 0 });
+  const [trend, setTrend] = useState([]);
+  const [bookings, setBookings] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetchDashboardData();
+  }, []);
+
+  const fetchDashboardData = async () => {
+    try {
+      const [statsRes, trendRes, bookingsRes] = await Promise.all([
+        adminService.getStats(),
+        adminService.getBookingsTrend(),
+        bookingService.getAll()
+      ]);
+      setStats(statsRes.data);
+      setTrend(trendRes.data);
+      setBookings(bookingsRes.data.slice(0, 10)); // Just show recent 10 for overview
+    } catch (error) {
+      toast.error('Failed to load dashboard data');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleStatusUpdate = async (id, newStatus) => {
+    try {
+      await bookingService.updateStatus(id, newStatus);
+      toast.success('Booking status updated');
+      fetchDashboardData();
+    } catch (error) {
+      toast.error('Failed to update status');
+    }
+  };
+
+  if (loading) return <div className="p-8 text-center animate-pulse">Loading dashboard...</div>;
 
   return (
-    <div className="space-y-6">
-      <FadeUp>
-        <h1 className="text-2xl font-bold text-dark dark:text-white mb-2">Dashboard Overview</h1>
-        <p className="text-gray-500 dark:text-gray-400">Welcome back, Admin. Here's what's happening today.</p>
-      </FadeUp>
+    <div className="p-6">
+      <h1 className="text-3xl font-bold mb-8 text-gray-800">Dashboard Overview</h1>
 
-      {/* Stats Grid */}
-      <StaggerContainer className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-        <StaggerItem>
-          <StatCard title="Total Users" value={stats.totalUsers} icon="👥" colorClass="bg-blue-500 text-blue-600 dark:text-blue-400" />
-        </StaggerItem>
-        <StaggerItem>
-          <StatCard title="Total Bookings" value={stats.totalBookings} icon="📅" colorClass="bg-green-500 text-green-600 dark:text-green-400" />
-        </StaggerItem>
-        <StaggerItem>
-          <StatCard title="Total Revenue" value={`$${(stats.revenue / 1000).toFixed(1)}k`} icon="💰" colorClass="bg-purple-500 text-purple-600 dark:text-purple-400" />
-        </StaggerItem>
-        <StaggerItem>
-          <StatCard title="Active Listings" value={stats.totalHotels + stats.totalPackages} icon="🏨" colorClass="bg-orange-500 text-orange-600 dark:text-orange-400" />
-        </StaggerItem>
-      </StaggerContainer>
+      {/* Stats Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+        <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100 flex items-center gap-4">
+          <div className="bg-blue-100 p-4 rounded-full text-blue-600"><Users size={28} /></div>
+          <div>
+            <p className="text-sm text-gray-500 font-medium">Total Users</p>
+            <p className="text-2xl font-bold text-gray-900">{stats.users}</p>
+          </div>
+        </div>
+        
+        <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100 flex items-center gap-4">
+          <div className="bg-green-100 p-4 rounded-full text-green-600"><Package size={28} /></div>
+          <div>
+            <p className="text-sm text-gray-500 font-medium">Total Bookings</p>
+            <p className="text-2xl font-bold text-gray-900">{stats.bookings}</p>
+          </div>
+        </div>
 
-      {/* Mini Chart & Recent Bookings */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Revenue Mini Chart */}
-        <FadeUp className="lg:col-span-1 bg-white dark:bg-gray-900 p-6 rounded-2xl border border-gray-100 dark:border-gray-800 shadow-sm flex flex-col">
-          <h3 className="text-lg font-bold text-dark dark:text-white mb-4">Revenue Trend</h3>
-          <div className="flex-1 min-h-[200px]">
+        <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100 flex items-center gap-4">
+          <div className="bg-purple-100 p-4 rounded-full text-purple-600"><DollarSign size={28} /></div>
+          <div>
+            <p className="text-sm text-gray-500 font-medium">Total Revenue</p>
+            <p className="text-2xl font-bold text-gray-900">${stats.revenue}</p>
+          </div>
+        </div>
+      </div>
+
+      {/* Chart */}
+      <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100 mb-8">
+        <h2 className="text-xl font-bold mb-6 text-gray-800 flex items-center gap-2"><TrendingUp /> Bookings Trend (Last 30 Days)</h2>
+        <div className="h-80 w-full">
+          {trend.length > 0 ? (
             <ResponsiveContainer width="100%" height="100%">
-              <AreaChart data={analytics.revenueData.slice(-6)}>
-                <defs>
-                  <linearGradient id="colorRev" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#AA3BFF" stopOpacity={0.3}/>
-                    <stop offset="95%" stopColor="#AA3BFF" stopOpacity={0}/>
-                  </linearGradient>
-                </defs>
-                <Tooltip contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }} />
-                <Area type="monotone" dataKey="revenue" stroke="#AA3BFF" strokeWidth={3} fillOpacity={1} fill="url(#colorRev)" />
-              </AreaChart>
+              <LineChart data={trend}>
+                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#E5E7EB" />
+                <XAxis dataKey="date" stroke="#6B7280" fontSize={12} tickLine={false} axisLine={false} />
+                <YAxis stroke="#6B7280" fontSize={12} tickLine={false} axisLine={false} />
+                <Tooltip 
+                  contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
+                />
+                <Line type="monotone" dataKey="count" stroke="#3B82F6" strokeWidth={3} dot={{ r: 4, fill: '#3B82F6', strokeWidth: 2, stroke: '#fff' }} activeDot={{ r: 6 }} />
+              </LineChart>
             </ResponsiveContainer>
-          </div>
-        </FadeUp>
+          ) : (
+            <div className="flex items-center justify-center h-full text-gray-400">Not enough data to show trend</div>
+          )}
+        </div>
+      </div>
 
-        {/* Recent Bookings Table */}
-        <FadeUp className="lg:col-span-2 bg-white dark:bg-gray-900 rounded-2xl border border-gray-100 dark:border-gray-800 shadow-sm overflow-hidden">
-          <div className="p-6 border-b border-gray-100 dark:border-gray-800 flex justify-between items-center">
-            <h3 className="text-lg font-bold text-dark dark:text-white">Recent Bookings</h3>
-            <button className="text-primary text-sm font-medium hover:underline">View All</button>
-          </div>
-          <div className="overflow-x-auto">
-            <table className="w-full text-left border-collapse">
-              <thead>
-                <tr className="bg-gray-50 dark:bg-gray-800/50 text-gray-500 dark:text-gray-400 text-sm">
-                  <th className="py-3 px-6 font-medium">ID</th>
-                  <th className="py-3 px-6 font-medium">User</th>
-                  <th className="py-3 px-6 font-medium">Item</th>
-                  <th className="py-3 px-6 font-medium">Amount</th>
-                  <th className="py-3 px-6 font-medium">Status</th>
+      {/* Bookings Table */}
+      <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
+        <h2 className="text-xl font-bold mb-6 text-gray-800">Recent Bookings</h2>
+        <div className="overflow-x-auto">
+          <table className="w-full text-left border-collapse">
+            <thead>
+              <tr className="bg-gray-50 text-gray-600 text-sm border-b">
+                <th className="p-4 font-semibold">Booking ID</th>
+                <th className="p-4 font-semibold">User</th>
+                <th className="p-4 font-semibold">Package</th>
+                <th className="p-4 font-semibold">Amount</th>
+                <th className="p-4 font-semibold">Status</th>
+                <th className="p-4 font-semibold">Action</th>
+              </tr>
+            </thead>
+            <tbody>
+              {bookings.map(booking => (
+                <tr key={booking.id} className="border-b border-gray-50 hover:bg-gray-50 transition-colors">
+                  <td className="p-4 text-sm">#{booking.id}</td>
+                  <td className="p-4 font-medium text-gray-900">{booking.user?.name || `User ${booking.user_id}`}</td>
+                  <td className="p-4 text-gray-600">{booking.package?.title}</td>
+                  <td className="p-4 font-semibold">${booking.total_amount}</td>
+                  <td className="p-4">
+                    <span className={`px-2.5 py-1 rounded-full text-xs font-bold uppercase ${
+                      booking.status === 'confirmed' ? 'bg-green-100 text-green-700' :
+                      booking.status === 'cancelled' ? 'bg-red-100 text-red-700' :
+                      'bg-yellow-100 text-yellow-700'
+                    }`}>
+                      {booking.status}
+                    </span>
+                  </td>
+                  <td className="p-4">
+                    <select 
+                      className="text-sm border-gray-300 rounded shadow-sm focus:ring-blue-500 p-1.5 bg-white border cursor-pointer outline-none"
+                      value={booking.status}
+                      onChange={(e) => handleStatusUpdate(booking.id, e.target.value)}
+                    >
+                      <option value="pending">Pending</option>
+                      <option value="confirmed">Confirm</option>
+                      <option value="cancelled">Cancel</option>
+                    </select>
+                  </td>
                 </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-100 dark:divide-gray-800">
-                {recentBookings.map((booking) => (
-                  <tr key={booking.id} className="hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors">
-                    <td className="py-4 px-6 text-sm font-medium text-dark dark:text-white">{booking.id}</td>
-                    <td className="py-4 px-6 text-sm text-gray-600 dark:text-gray-300">{booking.user}</td>
-                    <td className="py-4 px-6 text-sm text-gray-600 dark:text-gray-300 line-clamp-1">{booking.item}</td>
-                    <td className="py-4 px-6 text-sm font-bold text-dark dark:text-white">${booking.amount}</td>
-                    <td className="py-4 px-6 text-sm">
-                      <span className={`px-2.5 py-1 rounded-full text-xs font-bold ${
-                        booking.status === 'Confirmed' ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400' :
-                        booking.status === 'Pending' ? 'bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400' :
-                        'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400'
-                      }`}>
-                        {booking.status}
-                      </span>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </FadeUp>
+              ))}
+            </tbody>
+          </table>
+          {bookings.length === 0 && <div className="p-8 text-center text-gray-500">No bookings found.</div>}
+        </div>
       </div>
     </div>
   );

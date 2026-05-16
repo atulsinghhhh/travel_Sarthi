@@ -2,8 +2,6 @@ import React, { useState } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import toast from 'react-hot-toast';
-import InputField from '../components/InputField';
-import FadeUp from '../components/common/FadeUp';
 
 const Login = () => {
   const [formData, setFormData] = useState({
@@ -16,148 +14,136 @@ const Login = () => {
   const location = useLocation();
   const { login } = useAuth();
   
-  // Where to navigate after login
-  const from = location.state?.from?.pathname || '/dashboard';
+  const from = location.state?.from?.pathname || '/dashboard/bookings';
 
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
-    // Clear error when user types
     if (errors[name]) {
       setErrors(prev => ({ ...prev, [name]: '' }));
     }
   };
 
-  const validate = () => {
-    const newErrors = {};
-    if (!formData.email) {
-      newErrors.email = 'Email is required';
-    } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
-      newErrors.email = 'Email is invalid';
-    }
-    if (!formData.password) {
-      newErrors.password = 'Password is required';
-    }
-    return newErrors;
-  };
-
   const handleSubmit = async (e) => {
     e.preventDefault();
-    const validationErrors = validate();
-    if (Object.keys(validationErrors).length > 0) {
-      setErrors(validationErrors);
-      return;
-    }
-
     setIsLoading(true);
     
     try {
-      await login({
+      const resp = await login({
         email: formData.email,
         password: formData.password
       });
       
-      toast.success('Successfully logged in!');
-      navigate(from, { replace: true });
+      const loggedUser = resp.user || resp;
+      if (loggedUser.role === 'admin' || loggedUser.is_admin) {
+        navigate('/admin', { replace: true });
+      } else {
+        navigate(from, { replace: true });
+      }
     } catch (error) {
-      console.error('Login error:', error);
-      if (error.response && error.response.data && error.response.data.errors) {
-        // Handle Laravel validation errors (422)
+      if (error.response?.data?.errors) {
         const serverErrors = error.response.data.errors;
         const formattedErrors = {};
         Object.keys(serverErrors).forEach(key => {
           formattedErrors[key] = serverErrors[key][0];
         });
         setErrors(formattedErrors);
-      } else if (error.response && error.response.status === 401) {
-        setErrors({ email: 'Invalid email or password' });
-        toast.error('Invalid credentials');
       } else {
-        toast.error('An error occurred during login. Please try again.');
+        toast.error('Invalid credentials or an error occurred.');
       }
     } finally {
       setIsLoading(false);
     }
   };
 
-  const emailIcon = (
-    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5">
-      <path strokeLinecap="round" strokeLinejoin="round" d="M21.75 6.75v10.5a2.25 2.25 0 01-2.25 2.25h-15a2.25 2.25 0 01-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25m19.5 0v.243a2.25 2.25 0 01-1.07 1.916l-7.5 4.615a2.25 2.25 0 01-2.36 0L3.32 8.91a2.25 2.25 0 01-1.07-1.916V6.75" />
-    </svg>
-  );
-
-  const lockIcon = (
-    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5">
-      <path strokeLinecap="round" strokeLinejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 10-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 002.25-2.25v-6.75a2.25 2.25 0 00-2.25-2.25H6.75a2.25 2.25 0 00-2.25 2.25v6.75a2.25 2.25 0 002.25 2.25z" />
-    </svg>
-  );
-
   return (
-    <FadeUp className="glass-effect dark:bg-gray-900/80 rounded-3xl p-8 shadow-2xl border border-white/40 dark:border-gray-800 transform transition-all hover:shadow-[0_20px_50px_rgba(170,59,255,0.1)]">
-      <div className="mb-8">
-        <h2 className="text-3xl font-extrabold text-gray-900 dark:text-white mb-2">Welcome Back</h2>
-        <p className="text-gray-500 dark:text-gray-400">Please enter your details to sign in.</p>
+    <div>
+      <div className="border-b border-gray-200 px-6 py-5 flex items-center justify-center">
+        <h1 className="font-bold text-gray-900 text-lg">Log in or sign up</h1>
       </div>
-
-      <form onSubmit={handleSubmit} className="space-y-5">
-        <InputField
-          label="Email Address"
-          id="email"
-          type="email"
-          placeholder="Enter your email"
-          value={formData.email}
-          onChange={handleChange}
-          error={errors.email}
-          icon={emailIcon}
-        />
+      <div className="p-6 sm:p-8">
+        <h2 className="text-[22px] font-semibold text-gray-900 mb-6 tracking-tight">Welcome to TravelSaarthi</h2>
         
-        <InputField
-          label="Password"
-          id="password"
-          type="password"
-          placeholder="Enter your password"
-          value={formData.password}
-          onChange={handleChange}
-          error={errors.password}
-          icon={lockIcon}
-        />
+        <form onSubmit={handleSubmit} className="space-y-0">
+          <div className="rounded-xl border border-gray-400 overflow-hidden focus-within:border-black focus-within:ring-1 focus-within:ring-black transition-shadow">
+            <div className="border-b border-gray-400 relative group">
+              <label className="absolute top-2 left-3 text-xs font-semibold text-gray-500">Email</label>
+              <input 
+                type="email" 
+                name="email"
+                value={formData.email}
+                onChange={handleChange}
+                className="w-full px-3 pb-2 pt-6 border-none focus:ring-0 text-gray-900 outline-none placeholder-gray-400" 
+                placeholder="Email address"
+                required
+              />
+            </div>
+            <div className="relative group">
+              <label className="absolute top-2 left-3 text-xs font-semibold text-gray-500">Password</label>
+              <input 
+                type="password" 
+                name="password"
+                value={formData.password}
+                onChange={handleChange}
+                className="w-full px-3 pb-2 pt-6 border-none focus:ring-0 text-gray-900 outline-none placeholder-gray-400" 
+                placeholder="Password"
+                required
+              />
+            </div>
+          </div>
+          
+          {(errors.email || errors.password) && (
+            <p className="text-red-500 text-sm mt-3 flex items-center gap-1">
+              <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/></svg>
+              {errors.email || errors.password}
+            </p>
+          )}
 
-        <div className="flex items-center justify-between text-sm">
-          <label className="flex items-center cursor-pointer group">
-            <input type="checkbox" className="w-4 h-4 rounded border-gray-300 dark:border-gray-700 text-primary focus:ring-primary transition-colors cursor-pointer" />
-            <span className="ml-2 text-gray-600 dark:text-gray-400 group-hover:text-gray-900 dark:group-hover:text-white transition-colors">Remember me</span>
-          </label>
-          <a href="#" className="font-semibold text-primary hover:text-primary-hover transition-colors">
-            Forgot password?
-          </a>
+          <p className="text-xs text-gray-600 mt-4 leading-relaxed">
+            We'll call or text you to confirm your number. Standard message and data rates apply. <a href="#" className="underline font-semibold text-gray-900">Privacy Policy</a>
+          </p>
+
+          <button 
+            type="submit" 
+            disabled={isLoading}
+            className="w-full bg-[#FF385C] hover:bg-[#D70466] text-white font-semibold py-3.5 rounded-lg mt-5 transition-colors text-lg flex items-center justify-center gap-2"
+          >
+            {isLoading ? (
+              <span className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
+            ) : null}
+            Continue
+          </button>
+        </form>
+
+        <div className="flex items-center my-6">
+          <div className="flex-1 border-t border-gray-300"></div>
+          <span className="px-4 text-sm text-gray-500 font-normal">or</span>
+          <div className="flex-1 border-t border-gray-300"></div>
         </div>
 
-        <button
-          type="submit"
-          disabled={isLoading}
-          className="w-full relative py-3.5 px-4 bg-primary text-white font-bold rounded-xl shadow-[0_0_15px_rgba(170,59,255,0.3)] hover:shadow-[0_0_25px_rgba(170,59,255,0.5)] transform hover:-translate-y-0.5 transition-all overflow-hidden disabled:opacity-70 disabled:cursor-not-allowed disabled:transform-none"
-        >
-          {isLoading ? (
-            <span className="flex items-center justify-center gap-2">
-              <svg className="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-              </svg>
-              Signing in...
-            </span>
-          ) : (
-            'Sign In'
-          )}
-        </button>
-      </form>
-
-      <div className="mt-8 text-center text-sm text-gray-600 dark:text-gray-400">
-        Don't have an account?{' '}
-        <Link to="/register" className="font-bold text-primary hover:text-primary-hover transition-colors">
-          Sign up for free
-        </Link>
+        <div className="space-y-4">
+          <button className="w-full flex items-center justify-between px-6 py-3 border border-black rounded-lg hover:bg-gray-50 transition-colors font-semibold text-gray-900">
+            <svg className="w-5 h-5 text-[#1877F2]" fill="currentColor" viewBox="0 0 24 24"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.469h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.469h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg>
+            <span>Continue with Facebook</span>
+            <div className="w-5 h-5"></div>
+          </button>
+          <button className="w-full flex items-center justify-between px-6 py-3 border border-black rounded-lg hover:bg-gray-50 transition-colors font-semibold text-gray-900">
+            <svg className="w-5 h-5" viewBox="0 0 48 48"><path fill="#FFC107" d="M43.611 20.083H42V20H24v8h11.303c-1.649 4.657-6.08 8-11.303 8-6.627 0-12-5.373-12-12s5.373-12 12-12c3.059 0 5.842 1.154 7.961 3.039l5.657-5.657C34.046 6.053 29.268 4 24 4 12.955 4 4 12.955 4 24s8.955 20 20 20 20-8.955 20-20c0-1.341-.138-2.65-.389-3.917z"/><path fill="#FF3D00" d="M6.306 14.691l6.571 4.819C14.655 15.108 18.961 12 24 12c3.059 0 5.842 1.154 7.961 3.039l5.657-5.657C34.046 6.053 29.268 4 24 4 16.318 4 9.656 8.337 6.306 14.691z"/><path fill="#4CAF50" d="M24 44c5.166 0 9.86-1.977 13.409-5.192l-6.19-5.238C29.211 35.091 26.715 36 24 36c-5.202 0-9.619-3.317-11.283-7.946l-6.522 5.025C9.505 39.556 16.227 44 24 44z"/><path fill="#1976D2" d="M43.611 20.083H42V20H24v8h11.303c-.792 2.237-2.231 4.166-4.087 5.571c.001-.001.002-.001.003-.002l6.19 5.238C36.971 39.205 44 34 44 24c0-1.341-.138-2.65-.389-3.917z"/></svg>
+            <span>Continue with Google</span>
+            <div className="w-5 h-5"></div>
+          </button>
+          <button className="w-full flex items-center justify-between px-6 py-3 border border-black rounded-lg hover:bg-gray-50 transition-colors font-semibold text-gray-900">
+            <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2C6.477 2 2 6.477 2 12c0 4.418 2.865 8.166 6.839 9.489.5.092.682-.217.682-.482 0-.237-.008-.866-.013-1.7-2.782.603-3.369-1.34-3.369-1.34-.454-1.156-1.11-1.464-1.11-1.464-.908-.62.069-.608.069-.608 1.003.07 1.531 1.03 1.531 1.03.892 1.529 2.341 1.087 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.11-4.555-4.943 0-1.091.39-1.984 1.029-2.683-.103-.253-.446-1.27.098-2.647 0 0 .84-.269 2.75 1.025A9.578 9.578 0 0112 6.836c.85.004 1.705.114 2.504.336 1.909-1.294 2.747-1.025 2.747-1.025.546 1.379.203 2.394.1 2.647.64.699 1.028 1.592 1.028 2.683 0 3.842-2.339 4.687-4.566 4.935.359.309.678.919.678 1.852 0 1.336-.012 2.415-.012 2.743 0 .267.18.578.688.48C19.138 20.161 22 16.416 22 12c0-5.523-4.477-10-10-10z"/></svg>
+            <span>Continue with Apple</span>
+            <div className="w-5 h-5"></div>
+          </button>
+        </div>
+        
+        <div className="mt-6 text-center text-sm text-gray-700">
+          Need an account? <Link to="/register" className="font-semibold underline text-gray-900">Sign up</Link>
+        </div>
       </div>
-    </FadeUp>
+    </div>
   );
 };
 

@@ -7,31 +7,66 @@ use Illuminate\Http\Request;
 
 class PackageController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        return response()->json(Package::all());
+        $query = Package::query()
+            ->withCount('reviews')
+            ->withAvg('reviews', 'rating');
+
+        $query->search($request->search)
+              ->byBudget($request->budget_min, $request->budget_max)
+              ->byDestination($request->destination)
+              ->byDuration($request->duration)
+              ->byType($request->type);
+
+        if ($request->has('sort')) {
+            switch ($request->sort) {
+                case 'price_asc':
+                    $query->orderBy('budget', 'asc');
+                    break;
+                case 'price_desc':
+                    $query->orderBy('budget', 'desc');
+                    break;
+                case 'rating':
+                    $query->orderBy('reviews_avg_rating', 'desc');
+                    break;
+                case 'popular':
+                    $query->withCount('bookings')->orderBy('bookings_count', 'desc');
+                    break;
+                default:
+                    $query->latest();
+            }
+        } else {
+            $query->latest();
+        }
+
+        return response()->json($query->paginate(15));
     }
 
     public function store(Request $request)
     {
         $validated = $request->validate([
-            'title' => 'required|string|max:255',
-            'destination' => 'required|string',
-            'duration_days' => 'required|integer',
-            'price' => 'required|numeric',
+            'title' => 'required|string',
             'description' => 'required|string',
-            'itinerary' => 'nullable|array',
-            'images' => 'nullable|array',
-            'rating' => 'nullable|numeric|min:0|max:5',
+            'destination' => 'required|string',
+            'duration' => 'required|integer',
+            'budget' => 'required|numeric',
+            'type' => 'required|string',
+            'image' => 'nullable|string',
         ]);
-
         $package = Package::create($validated);
         return response()->json($package, 201);
     }
 
     public function show($id)
     {
-        $package = Package::findOrFail($id);
+        $package = Package::with(['hotel', 'reviews' => function($q) {
+            $q->with('user')->latest()->take(5);
+        }])
+        ->withCount('reviews')
+        ->withAvg('reviews', 'rating')
+        ->findOrFail($id);
+
         return response()->json($package);
     }
 
@@ -44,8 +79,7 @@ class PackageController extends Controller
 
     public function destroy($id)
     {
-        $package = Package::findOrFail($id);
-        $package->delete();
+        Package::destroy($id);
         return response()->json(null, 204);
     }
 }

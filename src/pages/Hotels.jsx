@@ -2,7 +2,7 @@ import React, { useState, useEffect, useMemo } from 'react';
 import HotelCard from '../components/HotelCard';
 import HotelFilter from '../components/HotelFilter';
 import SkeletonCard from '../components/SkeletonCard';
-import HotelService from '../services/hotel.service';
+import { hotelService } from '../services/hotel.service';
 import FadeUp from '../components/common/FadeUp';
 import { StaggerContainer, StaggerItem } from '../components/common/StaggerContainer';
 
@@ -25,7 +25,7 @@ const Hotels = () => {
     setIsLoading(true);
     setError(null);
     try {
-      const response = await HotelService.getHotels();
+      const response = await hotelService.getAll();
       // Map backend fields to frontend expectations if necessary
       // For instance: price_per_night -> price
       const mappedHotels = response.data.map(hotel => ({

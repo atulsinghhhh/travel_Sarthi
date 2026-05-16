@@ -4,7 +4,7 @@ import Gallery from '../components/hotel-details/Gallery';
 import Amenities from '../components/hotel-details/Amenities';
 import BookingSidebar from '../components/hotel-details/BookingSidebar';
 import ReviewCard from '../components/hotel-details/ReviewCard';
-import HotelService from '../services/hotel.service';
+import { hotelService } from '../services/hotel.service';
 import HotelCard from '../components/HotelCard';
 
 const HotelDetails = () => {
@@ -19,7 +19,7 @@ const HotelDetails = () => {
     setIsLoading(true);
     setError(null);
     try {
-      const response = await HotelService.getHotelById(id);
+      const response = await hotelService.getById(id);
       const hotelData = response.data;
       
       // Ensure specific fields map correctly to the frontend's expectations
@@ -43,7 +43,7 @@ const HotelDetails = () => {
 
       // Fetch similar hotels (for now, just fetch all and take 3)
       try {
-        const allHotelsResp = await HotelService.getHotels();
+        const allHotelsResp = await hotelService.getAll();
         const mappedAll = allHotelsResp.data.map(h => ({
           ...h,
           price: h.price_per_night || h.price,

@@ -2,25 +2,27 @@
 
 namespace App\Models;
 
-use MongoDB\Laravel\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
 
 class Review extends Model
 {
     use HasFactory;
 
-    protected $collection = 'reviews';
-
-    protected $fillable = [
-        'user_id',
-        'reviewable_id',
-        'reviewable_type', // 'hotel' or 'package'
-        'rating',
-        'comment'
-    ];
+    protected $guarded = [];
 
     public function user()
     {
         return $this->belongsTo(User::class);
+    }
+
+    public function package()
+    {
+        return $this->belongsTo(Package::class);
+    }
+
+    public function booking()
+    {
+        return $this->belongsTo(Booking::class);
     }
 }

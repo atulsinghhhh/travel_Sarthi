@@ -1,22 +1,12 @@
 import api from './api';
 
-const PackageService = {
-  /**
-   * Fetch all packages
-   * @returns {Promise} Axios response promise
-   */
-  getPackages: () => {
-    return api.get('/packages');
-  },
-
-  /**
-   * Fetch a single package by ID
-   * @param {string|number} id - Package ID
-   * @returns {Promise} Axios response promise
-   */
-  getPackageById: (id) => {
-    return api.get(`/packages/${id}`);
-  }
+export const packageService = {
+  getAll: (params) => api.get('/packages', { params }),
+  getById: (id) => api.get(`/packages/${id}`),
+  getReviews: (id, page = 1) => api.get(`/packages/${id}/reviews?page=${page}`),
+  create: (data) => api.post('/packages', data),
+  update: (id, data) => api.put(`/packages/${id}`, data),
+  delete: (id) => api.delete(`/packages/${id}`),
+  postReview: (data) => api.post('/reviews', data),
+  markReviewHelpful: (id) => api.post(`/reviews/${id}/helpful`),
 };
-
-export default PackageService;

@@ -2,36 +2,34 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Favorite;
 use Illuminate\Http\Request;
+use App\Models\Package;
 
 class FavoriteController extends Controller
 {
     public function index(Request $request)
     {
-        return response()->json(Favorite::where('user_id', $request->user()->id)->get());
+        // Simplistic approach for getting favorites with basic relations
+        $favorites = $request->user()->favorites()->withCount('reviews')->withAvg('reviews', 'rating')->get();
+        // The favorites relation returns Package models
+        return response()->json($favorites);
     }
 
-    public function store(Request $request)
+    public function toggle(Request $request)
     {
         $validated = $request->validate([
-            'favorable_id' => 'required|string',
-            'favorable_type' => 'required|string|in:hotel,package',
+            'package_id' => 'required|exists:packages,id'
         ]);
 
-        $favorite = Favorite::firstOrCreate([
-            'user_id' => $request->user()->id,
-            'favorable_id' => $validated['favorable_id'],
-            'favorable_type' => $validated['favorable_type'],
-        ]);
+        $user = $request->user();
+        $isFavorited = $user->favorites()->where('package_id', $validated['package_id'])->exists();
 
-        return response()->json($favorite, 201);
-    }
+        if ($isFavorited) {
+            $user->favorites()->detach($validated['package_id']);
+            return response()->json(['message' => 'Removed from favorites', 'is_favorited' => false]);
+        }
 
-    public function destroy(Request $request, $id)
-    {
-        $favorite = Favorite::where('user_id', $request->user()->id)->findOrFail($id);
-        $favorite->delete();
-        return response()->json(null, 204);
+        $user->favorites()->attach($validated['package_id']);
+        return response()->json(['message' => 'Added to favorites', 'is_favorited' => true]);
     }
 }

@@ -1,22 +1,10 @@
 import api from './api';
 
-const HotelService = {
-  /**
-   * Fetch all hotels
-   * @returns {Promise} Axios response promise
-   */
-  getHotels: () => {
-    return api.get('/hotels');
-  },
-
-  /**
-   * Fetch a single hotel by ID
-   * @param {string|number} id - Hotel ID
-   * @returns {Promise} Axios response promise
-   */
-  getHotelById: (id) => {
-    return api.get(`/hotels/${id}`);
-  }
+export const hotelService = {
+  getAll: (params) => api.get('/hotels', { params }),
+  getById: (id) => api.get(`/hotels/${id}`),
+  create: (data) => api.post('/admin/hotels', data),
+  update: (id, data) => api.put(`/admin/hotels/${id}`, data),
+  delete: (id) => api.delete(`/admin/hotels/${id}`),
+  uploadImages: (id, data) => api.post(`/admin/hotels/${id}/images`, data, { headers: { 'Content-Type': 'multipart/form-data' } })
 };
-
-export default HotelService;

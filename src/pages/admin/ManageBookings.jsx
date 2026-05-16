@@ -1,66 +1,159 @@
-import React, { useState } from 'react';
-import FadeUp from '../../components/common/FadeUp';
-import adminData from '../../data/adminData.json';
+import React, { useState, useEffect } from 'react';
+import { adminService } from '../../services/admin.service';
+import PageHeader from '../../components/admin/PageHeader';
+import DataTable from '../../components/admin/DataTable';
+import StatusBadge from '../../components/admin/StatusBadge';
+import { useToast } from '../../context/ToastContext';
+import { Download, Search, ChevronDown, CheckCircle, XCircle } from 'lucide-react';
 
 const ManageBookings = () => {
-  const [bookings] = useState(adminData.recentBookings);
+  const [bookings, setBookings] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [filter, setFilter] = useState({ status: 'all', search: '' });
+  const [searchInput, setSearchInput] = useState('');
+  const { showToast } = useToast();
+
+  useEffect(() => {
+    fetchBookings();
+  }, [filter]);
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      if (searchInput !== filter.search) {
+        setFilter(prev => ({ ...prev, search: searchInput }));
+      }
+    }, 400);
+    return () => clearTimeout(timer);
+  }, [searchInput]);
+
+  const fetchBookings = async () => {
+    setLoading(true);
+    try {
+      const { data } = await adminService.getBookings(filter);
+      setBookings(data.data);
+    } catch (e) {
+      showToast('Failed to load bookings', 'error');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleStatusChange = async (id, newStatus) => {
+    try {
+      await adminService.updateBookingStatus(id, { status: newStatus });
+      showToast('Status updated successfully', 'success');
+      fetchBookings();
+    } catch (e) {
+      showToast('Failed to update status', 'error');
+    }
+  };
+
+  const fileInputRef = React.useRef(null);
+
+  const handleExport = async () => {
+    try {
+      const response = await adminService.exportBookings(filter);
+      const url = window.URL.createObjectURL(new Blob([response.data]));
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', 'bookings.csv');
+      document.body.appendChild(link);
+      link.click();
+    } catch (e) {
+      showToast('Export failed', 'error');
+    }
+  };
+
+  const handleImport = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const formData = new FormData();
+    formData.append('file', file);
+
+    setLoading(true);
+    try {
+      const { data } = await adminService.importBookings(formData);
+      showToast(data.message || 'Bookings imported successfully', 'success');
+      fetchBookings();
+    } catch (err) {
+      showToast('Failed to import CSV file', 'error');
+    } finally {
+      setLoading(false);
+      if (fileInputRef.current) fileInputRef.current.value = '';
+    }
+  };
+
+  const columns = [
+    { header: 'ID', accessor: 'id', cellClassName: 'font-mono text-xs text-gray-500' },
+    { header: 'User', accessor: 'user', render: (row) => (
+      <div>
+        <p className="font-medium text-sm text-gray-900">{row.user.name}</p>
+        <p className="text-xs text-gray-500">{row.user.email}</p>
+      </div>
+    )},
+    { header: 'Package', accessor: 'package', render: (row) => <span className="font-normal text-sm text-gray-800">{row.package.title}</span> },
+    { header: 'Travel Date', accessor: 'start_date', render: (row) => <span className="text-sm text-gray-600">{new Date(row.start_date).toLocaleDateString()}</span> },
+    { header: 'Amount', accessor: 'total_amount', render: (row) => <span className="font-semibold text-sm text-gray-900">₹{Number(row.total_amount).toLocaleString('en-IN')}</span> },
+    { header: 'Status', accessor: 'status', render: (row) => <StatusBadge status={row.status} /> },
+    { header: 'Actions', accessor: 'actions', render: (row) => (
+      <select 
+        value={row.status}
+        onChange={(e) => handleStatusChange(row.id, e.target.value)}
+        className="text-xs border border-gray-200 rounded-lg p-1.5 focus:ring-rose-500 outline-none bg-white cursor-pointer font-medium text-gray-700"
+        onClick={e => e.stopPropagation()}
+      >
+        <option value="pending">Pending</option>
+        <option value="confirmed">Confirm</option>
+        <option value="cancelled">Cancel</option>
+        <option value="completed">Complete</option>
+      </select>
+    )}
+  ];
 
   return (
-    <div className="space-y-6">
-      <FadeUp>
-        <h1 className="text-2xl font-bold text-dark dark:text-white mb-1">Manage Bookings</h1>
-        <p className="text-gray-500 dark:text-gray-400 text-sm">Track and manage all customer reservations.</p>
-      </FadeUp>
+    <div>
+      <input 
+        type="file" 
+        ref={fileInputRef} 
+        onChange={handleImport} 
+        accept=".csv,.txt" 
+        className="hidden" 
+      />
+      <PageHeader 
+        title="Manage Bookings" 
+        actionLabel="Export CSV" 
+        onAction={handleExport} 
+        secondaryActionLabel="Import CSV"
+        onSecondaryAction={() => fileInputRef.current?.click()}
+      />
 
-      <FadeUp className="bg-white dark:bg-gray-900 rounded-2xl border border-gray-100 dark:border-gray-800 shadow-sm overflow-hidden">
-        <div className="overflow-x-auto">
-          <table className="w-full text-left border-collapse">
-            <thead>
-              <tr className="bg-gray-50 dark:bg-gray-800/50 text-gray-500 dark:text-gray-400 text-sm">
-                <th className="py-4 px-6 font-medium">Booking ID</th>
-                <th className="py-4 px-6 font-medium">Customer</th>
-                <th className="py-4 px-6 font-medium">Item</th>
-                <th className="py-4 px-6 font-medium">Date</th>
-                <th className="py-4 px-6 font-medium">Amount</th>
-                <th className="py-4 px-6 font-medium">Status</th>
-                <th className="py-4 px-6 font-medium">Payment</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-100 dark:divide-gray-800">
-              {bookings.map((booking) => (
-                <tr key={booking.id} className="hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors cursor-pointer">
-                  <td className="py-4 px-6 text-sm font-medium text-primary">{booking.id}</td>
-                  <td className="py-4 px-6 text-sm text-dark dark:text-white font-medium">{booking.user}</td>
-                  <td className="py-4 px-6">
-                    <div className="text-sm font-bold text-dark dark:text-white">{booking.item}</div>
-                    <div className="text-xs text-gray-500 dark:text-gray-400 uppercase">{booking.type}</div>
-                  </td>
-                  <td className="py-4 px-6 text-sm text-gray-600 dark:text-gray-300">{booking.date}</td>
-                  <td className="py-4 px-6 text-sm font-bold text-dark dark:text-white">${booking.amount}</td>
-                  <td className="py-4 px-6 text-sm">
-                    <span className={`px-2.5 py-1 rounded-full text-xs font-bold ${
-                      booking.status === 'Confirmed' ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400' :
-                      booking.status === 'Pending' ? 'bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400' :
-                      'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400'
-                    }`}>
-                      {booking.status}
-                    </span>
-                  </td>
-                  <td className="py-4 px-6 text-sm">
-                    <span className={`px-2.5 py-1 rounded-full text-xs font-semibold ${
-                      booking.paymentStatus === 'Paid' ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400' :
-                      booking.paymentStatus === 'Refunded' ? 'bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-400' :
-                      'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400'
-                    }`}>
-                      {booking.paymentStatus}
-                    </span>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+      <div className="bg-white p-4 rounded-t-2xl border border-b-0 border-gray-200 flex flex-col md:flex-row justify-between gap-4">
+        <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
+          {['all', 'pending', 'confirmed', 'cancelled', 'completed'].map(s => (
+            <button 
+              key={s} 
+              onClick={() => setFilter(prev => ({ ...prev, status: s }))}
+              className={`px-4 py-2 rounded-lg text-xs font-medium capitalize whitespace-nowrap transition-colors ${filter.status === s ? 'bg-rose-500 text-white shadow-sm' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`}
+            >
+              {s}
+            </button>
+          ))}
         </div>
-      </FadeUp>
+        
+        <div className="relative md:w-64">
+          <input 
+            type="text" 
+            placeholder="Search user or email..." 
+            value={searchInput}
+            onChange={(e) => setSearchInput(e.target.value)}
+            className="w-full pl-10 pr-4 py-2 bg-gray-50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-rose-500 text-sm outline-none"
+          />
+          <Search size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+        </div>
+      </div>
+
+      <DataTable columns={columns} data={bookings} loading={loading} emptyMessage="No bookings found." />
     </div>
   );
 };

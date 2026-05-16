@@ -2,22 +2,17 @@
 
 namespace App\Models;
 
-use MongoDB\Laravel\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
 
 class Hotel extends Model
 {
     use HasFactory;
 
-    protected $collection = 'hotels';
+    protected $guarded = [];
 
-    protected $fillable = [
-        'name',
-        'location',
-        'description',
-        'price_per_night',
-        'images',
-        'amenities',
-        'rating'
-    ];
+    public function rooms()
+    {
+        return $this->hasMany(Room::class);
+    }
 }

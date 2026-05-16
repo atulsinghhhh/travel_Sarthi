@@ -2,28 +2,32 @@
 
 namespace App\Models;
 
-use MongoDB\Laravel\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
 
 class Booking extends Model
 {
     use HasFactory;
 
-    protected $collection = 'bookings';
-
-    protected $fillable = [
-        'user_id',
-        'bookable_id',
-        'bookable_type', // 'hotel' or 'package'
-        'booking_date',
-        'status', // 'pending', 'confirmed', 'cancelled'
-        'total_price',
-        'payment_status',
-        'guests'
-    ];
+    protected $guarded = [];
 
     public function user()
     {
         return $this->belongsTo(User::class);
+    }
+
+    public function package()
+    {
+        return $this->belongsTo(Package::class);
+    }
+
+    public function coupon()
+    {
+        return $this->belongsTo(Coupon::class);
+    }
+
+    public function review()
+    {
+        return $this->hasOne(Review::class);
     }
 }

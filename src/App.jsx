@@ -24,16 +24,19 @@ import Favorites from './pages/dashboard/Favorites';
 import Profile from './pages/dashboard/Profile';
 
 // Admin Pages
-import AdminLayout from './layouts/AdminLayout';
-import AdminOverview from './pages/admin/AdminOverview';
+import AdminLayout from './components/admin/AdminLayout';
+import AdminDashboard from './pages/admin/AdminDashboard';
 import ManageUsers from './pages/admin/ManageUsers';
 import ManageHotels from './pages/admin/ManageHotels';
 import ManagePackages from './pages/admin/ManagePackages';
+import PackageForm from './pages/admin/PackageForm';
 import ManageBookings from './pages/admin/ManageBookings';
-import AdminAnalytics from './pages/admin/AdminAnalytics';
+import ManageCoupons from './pages/admin/ManageCoupons';
+import AdminReviews from './pages/admin/AdminReviews';
 
 import { ThemeProvider } from './context/ThemeContext';
 import { AuthProvider } from './context/AuthContext';
+import { ToastProvider } from './context/ToastContext';
 import ProtectedRoute from './routes/ProtectedRoute';
 import { Toaster } from 'react-hot-toast';
 
@@ -41,8 +44,9 @@ function App() {
   return (
     <AuthProvider>
       <ThemeProvider>
-        <Toaster position="top-right" />
-        <Router>
+        <ToastProvider>
+          <Toaster position="top-right" />
+          <Router>
         <Routes>
         {/* Auth Routes with AuthLayout */}
         <Route element={<AuthLayout />}>
@@ -71,15 +75,19 @@ function App() {
 
         {/* Admin Routes with AdminLayout */}
         <Route path="/admin" element={<ProtectedRoute><AdminLayout /></ProtectedRoute>}>
-          <Route index element={<AdminOverview />} />
+          <Route index element={<AdminDashboard />} />
           <Route path="users" element={<ManageUsers />} />
           <Route path="hotels" element={<ManageHotels />} />
           <Route path="packages" element={<ManagePackages />} />
+          <Route path="packages/new" element={<PackageForm />} />
+          <Route path="packages/edit/:id" element={<PackageForm />} />
           <Route path="bookings" element={<ManageBookings />} />
-          <Route path="analytics" element={<AdminAnalytics />} />
+          <Route path="coupons" element={<ManageCoupons />} />
+          <Route path="reviews" element={<AdminReviews />} />
         </Route>
       </Routes>
       </Router>
+      </ToastProvider>
       </ThemeProvider>
     </AuthProvider>
   );
