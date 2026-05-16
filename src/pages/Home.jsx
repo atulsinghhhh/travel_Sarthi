@@ -1,11 +1,13 @@
 import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import FadeUp from '../components/common/FadeUp';
 import { StaggerContainer, StaggerItem } from '../components/common/StaggerContainer';
 import { Heart, Search } from 'lucide-react';
 import { hotelService } from '../services/hotel.service';
+import toast from 'react-hot-toast';
 
 const Home = () => {
+  const navigate = useNavigate();
   const [activeCategory, setActiveCategory] = useState('All');
   const [hotels, setHotels] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -76,14 +78,24 @@ const Home = () => {
         ) : (
           <StaggerContainer className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-x-6 gap-y-10">
             {hotels.map((hotel) => (
-              <StaggerItem key={hotel.id} className="group cursor-pointer flex flex-col">
+              <StaggerItem 
+                key={hotel.id} 
+                onClick={() => navigate(`/hotels/${hotel.id}`)}
+                className="group cursor-pointer flex flex-col"
+              >
                 <div className="relative aspect-square w-full rounded-2xl overflow-hidden mb-3 bg-gray-200">
                   <img 
                     src={hotel.image || hotel.imageUrl || 'https://images.unsplash.com/photo-1540541338287-41700207dee6?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80'} 
                     alt={hotel.name} 
                     className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" 
                   />
-                  <button className="absolute top-3 right-3 p-1">
+                  <button 
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      toast.success('Added to wishlists!');
+                    }}
+                    className="absolute top-3 right-3 p-1"
+                  >
                     <Heart className="w-6 h-6 text-white drop-shadow-md hover:scale-110 transition-transform hover:fill-rose-500 hover:text-rose-500" />
                   </button>
                   {/* Optional 'Guest favorite' badge */}

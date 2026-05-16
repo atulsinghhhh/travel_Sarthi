@@ -1,6 +1,9 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import toast from 'react-hot-toast';
 
 const BookingSidebar = ({ pricePerNight }) => {
+  const navigate = useNavigate();
   const [checkIn, setCheckIn] = useState('');
   const [checkOut, setCheckOut] = useState('');
   const [guests, setGuests] = useState(1);
@@ -22,6 +25,15 @@ const BookingSidebar = ({ pricePerNight }) => {
   const taxes = Math.round(basePrice * 0.1); // 10% tax
   const total = basePrice + taxes;
 
+  const handleReserve = () => {
+    if (!checkIn || !checkOut) {
+      toast.error('Please select check-in and check-out dates.');
+      return;
+    }
+    toast.success('Reservation requested successfully! Our host will confirm your dates shortly.');
+    navigate('/dashboard/bookings');
+  };
+
   return (
     <div className="bg-white rounded-3xl p-6 border border-gray-100 shadow-xl sticky top-24">
       <div className="flex items-end gap-1 mb-6">
@@ -37,7 +49,7 @@ const BookingSidebar = ({ pricePerNight }) => {
               type="date" 
               value={checkIn}
               onChange={(e) => setCheckIn(e.target.value)}
-              className="w-full bg-gray-50 border border-gray-200 rounded-xl p-3 text-sm focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all"
+              className="w-full bg-gray-50 border border-gray-200 rounded-xl p-3 text-sm focus:ring-2 focus:ring-[#FF385C]/20 focus:border-[#FF385C] outline-none transition-all"
             />
           </div>
           <div>
@@ -46,7 +58,7 @@ const BookingSidebar = ({ pricePerNight }) => {
               type="date" 
               value={checkOut}
               onChange={(e) => setCheckOut(e.target.value)}
-              className="w-full bg-gray-50 border border-gray-200 rounded-xl p-3 text-sm focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all"
+              className="w-full bg-gray-50 border border-gray-200 rounded-xl p-3 text-sm focus:ring-2 focus:ring-[#FF385C]/20 focus:border-[#FF385C] outline-none transition-all"
             />
           </div>
         </div>
@@ -56,7 +68,7 @@ const BookingSidebar = ({ pricePerNight }) => {
           <select 
             value={guests}
             onChange={(e) => setGuests(Number(e.target.value))}
-            className="w-full bg-gray-50 border border-gray-200 rounded-xl p-3 text-sm focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all appearance-none cursor-pointer"
+            className="w-full bg-gray-50 border border-gray-200 rounded-xl p-3 text-sm focus:ring-2 focus:ring-[#FF385C]/20 focus:border-[#FF385C] outline-none transition-all appearance-none cursor-pointer"
           >
             {[1, 2, 3, 4, 5, 6].map(num => (
               <option key={num} value={num}>{num} {num === 1 ? 'Guest' : 'Guests'}</option>
@@ -77,11 +89,14 @@ const BookingSidebar = ({ pricePerNight }) => {
         </div>
         <div className="border-t border-dashed border-gray-200 pt-3 flex justify-between items-center font-bold text-lg text-dark">
           <span>Total</span>
-          <span className="text-primary">${total}</span>
+          <span className="text-[#FF385C]">${total}</span>
         </div>
       </div>
 
-      <button className="w-full py-4 bg-primary text-white rounded-xl font-bold text-lg shadow-[0_4px_14px_0_rgba(170,59,255,0.39)] hover:shadow-[0_6px_20px_rgba(170,59,255,0.23)] hover:bg-primary-hover transform hover:-translate-y-0.5 transition-all">
+      <button 
+        onClick={handleReserve}
+        className="w-full py-4 bg-[#FF385C] text-white rounded-xl font-bold text-lg shadow-lg hover:bg-[#D70466] transform hover:-translate-y-0.5 transition-all"
+      >
         Reserve Now
       </button>
       

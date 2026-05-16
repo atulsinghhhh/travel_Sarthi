@@ -31,7 +31,7 @@ export const usePackageForm = (initialData = null) => {
     setFormData(prev => ({ ...prev, [field]: value }));
   };
 
-  const nextStep = () => setStep(prev => Math.min(prev + 1, 6));
+  const nextStep = () => setStep(prev => Math.min(prev + 1, 3));
   const prevStep = () => setStep(prev => Math.max(prev - 1, 1));
 
   return { step, formData, updateField, nextStep, prevStep, setStep };

@@ -15,10 +15,10 @@ const PackageCard = ({ pkg }) => {
           <div className="w-full h-full flex items-center justify-center text-gray-400 font-medium">No Image</div>
         )}
         <div className="absolute top-3 left-3 bg-white/90 backdrop-blur-sm px-2.5 py-1 rounded-md text-xs font-bold text-gray-800 shadow-sm flex items-center gap-1 uppercase tracking-wider">
-          <MapPin size={12} className="text-blue-600" /> {pkg.destination}
+          <MapPin size={12} className="text-[#FF385C]" /> {pkg.destination}
         </div>
         <div className="absolute top-3 right-3 flex gap-2">
-          <span className="bg-blue-600 text-white px-2.5 py-1 rounded-md text-xs font-bold shadow-sm uppercase tracking-wider">
+          <span className="bg-[#FF385C] text-white px-2.5 py-1 rounded-md text-xs font-bold shadow-sm uppercase tracking-wider">
             {pkg.type}
           </span>
         </div>
@@ -48,9 +48,9 @@ const PackageCard = ({ pkg }) => {
         <div className="mt-auto pt-4 border-t border-gray-100 flex items-center justify-between">
           <div>
             <p className="text-xs text-gray-500 uppercase font-semibold tracking-wider">Starts From</p>
-            <p className="text-xl font-extrabold text-blue-600">₹{Number(pkg.budget).toLocaleString('en-IN')}</p>
+            <p className="text-xl font-extrabold text-[#FF385C]">₹{Number(pkg.budget).toLocaleString('en-IN')}</p>
           </div>
-          <Link to={`/packages/${pkg.id}`} className="bg-gray-900 hover:bg-gray-800 text-white text-sm font-medium px-4 py-2 rounded-lg transition-colors shadow-sm">
+          <Link to={`/packages/${pkg.id}`} className="bg-[#FF385C] hover:bg-[#D70466] text-white text-sm font-semibold px-5 py-2.5 rounded-xl transition-colors shadow-sm">
             View Details
           </Link>
         </div>

@@ -84,7 +84,7 @@ const HotelCard = ({ hotel }) => {
               <span className="text-sm text-gray-500 dark:text-gray-400 font-normal">/night</span>
             </div>
           </div>
-          <Link to={`/hotels/${hotel.id}`} className="bg-primary text-white px-5 py-2.5 rounded-lg font-semibold text-sm hover:bg-primary-hover shadow-md hover:shadow-lg transform hover:-translate-y-0.5 transition-all text-center">
+          <Link to={`/hotels/${hotel.id}`} className="bg-[#FF385C] text-white px-5 py-2.5 rounded-xl font-semibold text-sm hover:bg-[#D70466] shadow-md hover:shadow-lg transform hover:-translate-y-0.5 transition-all text-center">
             Book Now
           </Link>
         </div>

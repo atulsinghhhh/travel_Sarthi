@@ -5,7 +5,6 @@ import PageHeader from '../../components/admin/PageHeader';
 import DataTable from '../../components/admin/DataTable';
 import StatusBadge from '../../components/admin/StatusBadge';
 import { useToast } from '../../context/ToastContext';
-import { Plus, Edit2, Trash2, Search, Package } from 'lucide-react';
 import ConfirmDialog from '../../components/admin/ConfirmDialog';
 
 const ManagePackages = () => {
@@ -37,6 +36,7 @@ const ManagePackages = () => {
     try {
       await packageService.delete(selectedId);
       showToast('Package deleted successfully', 'success');
+      setIsDeleteModalOpen(false);
       fetchPackages();
     } catch (e) {
       showToast('Failed to delete package', 'error');
@@ -44,34 +44,40 @@ const ManagePackages = () => {
   };
 
   const columns = [
-    { header: 'Package', accessor: 'title', render: (row) => (
+    { header: 'Package Name', accessor: 'title', render: (row) => (
       <div className="flex items-center gap-3">
         <div className="w-12 h-12 rounded-lg bg-gray-100 overflow-hidden flex-shrink-0 border border-gray-200">
           {row.image || (row.images && row.images.length > 0) ? (
             <img src={row.image || (Array.isArray(row.images) ? row.images[0] : JSON.parse(row.images)[0])} alt={row.title} className="w-full h-full object-cover" />
           ) : (
-            <Package className="w-full h-full p-2 text-gray-400" />
+            <div className="w-full h-full flex items-center justify-center text-gray-400 font-medium text-xs">N/A</div>
           )}
         </div>
         <div>
-          <p className="font-bold text-gray-900 line-clamp-1">{row.title}</p>
-          <p className="text-xs text-gray-500">{row.destination} • {row.duration_days} Days</p>
+          <p className="font-semibold text-gray-900 text-sm line-clamp-1">{row.title}</p>
+          <p className="text-xs text-gray-500">{row.destination} • {row.duration || row.duration_days} Days</p>
         </div>
       </div>
     )},
-    { header: 'Type', accessor: 'type', render: (row) => <span className="px-2 py-1 bg-blue-50 text-blue-700 rounded text-xs font-bold">{row.type}</span> },
-    { header: 'Price', accessor: 'price', render: (row) => <span className="font-bold text-gray-900">₹{Number(row.price).toLocaleString('en-IN')}</span> },
+    { header: 'Type', accessor: 'type', render: (row) => <span className="px-2.5 py-1 bg-[#FF385C]/10 text-[#FF385C] rounded-md text-xs font-semibold">{row.type}</span> },
+    { header: 'Budget / Price', accessor: 'budget', render: (row) => <span className="text-sm font-medium text-gray-800">₹{Number(row.budget || row.price).toLocaleString('en-IN')}</span> },
     { header: 'Status', accessor: 'is_active', render: (row) => <StatusBadge status={row.is_active !== 0 ? 'Active' : 'Inactive'} /> },
     { header: 'Actions', accessor: 'actions', render: (row) => (
-      <div className="flex items-center gap-2">
-        <button className="p-1.5 text-blue-600 hover:bg-blue-50 rounded transition-colors" onClick={() => navigate(`/admin/packages/edit/${row.id}`)}>
-          <Edit2 size={16} />
+      <div className="flex items-center gap-3">
+        <button 
+          className="text-sm font-semibold text-[#FF385C] hover:underline" 
+          onClick={() => navigate(`/admin/packages/edit/${row.id}`)}
+        >
+          Edit
         </button>
-        <button className="p-1.5 text-red-600 hover:bg-red-50 rounded transition-colors" onClick={() => {
-          setSelectedId(row.id);
-          setIsDeleteModalOpen(true);
-        }}>
-          <Trash2 size={16} />
+        <button 
+          className="text-sm font-semibold text-gray-500 hover:text-red-600 hover:underline" 
+          onClick={() => {
+            setSelectedId(row.id);
+            setIsDeleteModalOpen(true);
+          }}
+        >
+          Delete
         </button>
       </div>
     )}
@@ -81,22 +87,20 @@ const ManagePackages = () => {
     <div>
       <PageHeader 
         title="Manage Packages" 
-        subtitle="Add, edit, and remove tour packages" 
-        actionLabel="Create Package" 
-        actionIcon={Plus}
+        subtitle="Add, edit, and remove curated travel packages and itineraries" 
+        actionLabel="+ Create Package" 
         onAction={() => navigate('/admin/packages/new')}
       />
 
-      <div className="bg-white p-4 rounded-t-2xl border border-b-0 border-gray-200 flex flex-col md:flex-row justify-between gap-4">
-        <div className="relative md:w-80">
+      <div className="bg-white p-6 rounded-t-2xl border border-b-0 border-gray-200 flex flex-col md:flex-row justify-between gap-4">
+        <div className="md:w-80">
           <input 
             type="text" 
-            placeholder="Search packages..." 
+            placeholder="Search packages by destination or title..." 
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full pl-10 pr-4 py-2 bg-gray-50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
+            className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#FF385C]/20 focus:border-[#FF385C] outline-none text-sm transition-all"
           />
-          <Search size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
         </div>
       </div>
 

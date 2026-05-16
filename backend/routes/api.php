@@ -41,6 +41,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/admin/hotels/{id}/images', [HotelController::class, 'uploadImages']);
 
     // Admin Package Management
+    Route::post('/packages', [PackageController::class, 'store']);
     Route::put('/packages/{id}', [PackageController::class, 'update']);
     Route::delete('/packages/{id}', [PackageController::class, 'destroy']);
 

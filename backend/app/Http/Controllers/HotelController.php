@@ -18,6 +18,12 @@ class HotelController extends Controller
         return response()->json($query->get());
     }
 
+    public function show($id)
+    {
+        $hotel = Hotel::with('rooms')->findOrFail($id);
+        return response()->json($hotel);
+    }
+
     public function store(Request $request)
     {
         $validated = $request->validate([

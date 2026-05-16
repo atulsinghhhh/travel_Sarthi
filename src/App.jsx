@@ -14,6 +14,7 @@ import Hotels from './pages/Hotels';
 import HotelDetails from './pages/HotelDetails';
 import Packages from './pages/Packages';
 import PackageDetails from './pages/PackageDetails';
+import Checkout from './pages/Checkout';
 import About from './pages/About';
 import Contact from './pages/Contact';
 
@@ -61,6 +62,7 @@ function App() {
           <Route path="hotels/:id" element={<HotelDetails />} />
           <Route path="packages" element={<Packages />} />
           <Route path="packages/:id" element={<PackageDetails />} />
+          <Route path="checkout" element={<ProtectedRoute><Checkout /></ProtectedRoute>} />
           <Route path="about" element={<About />} />
           <Route path="contact" element={<Contact />} />
         </Route>

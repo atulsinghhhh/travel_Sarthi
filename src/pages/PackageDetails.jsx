@@ -371,7 +371,7 @@ const PackageDetail = () => {
 
               <button 
                 onClick={() => navigate(`/checkout?packageId=${pkg.id}`)}
-                className="w-full bg-blue-600 hover:bg-blue-700 text-white text-lg font-bold py-4 px-8 rounded-xl shadow-lg shadow-blue-600/30 transition-all hover:-translate-y-1 active:translate-y-0"
+                className="w-full bg-[#FF385C] hover:bg-[#D70466] text-white text-lg font-bold py-4 px-8 rounded-xl shadow-lg shadow-[#FF385C]/30 transition-all hover:-translate-y-1 active:translate-y-0"
               >
                 Proceed to Book
               </button>
