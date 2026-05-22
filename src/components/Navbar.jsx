@@ -118,7 +118,7 @@ const Navbar = () => {
                       <Link to="/dashboard/favorites" onClick={() => setIsProfileMenuOpen(false)} className="block px-4 py-2.5 text-sm font-semibold text-gray-800 hover:bg-[#FF385C]/10 hover:text-[#FF385C] transition">Wishlists</Link>
                       <hr className="my-1 border-gray-100" />
                       <Link to="/dashboard/profile" onClick={() => setIsProfileMenuOpen(false)} className="block px-4 py-2.5 text-sm text-gray-700 hover:bg-[#FF385C]/10 hover:text-[#FF385C] transition">Account Settings</Link>
-                      <Link to="/about" onClick={() => setIsProfileMenuOpen(false)} className="block px-4 py-2.5 text-sm text-gray-700 hover:bg-[#FF385C]/10 hover:text-[#FF385C] transition">Help Center</Link>
+                      <Link to="/help" onClick={() => setIsProfileMenuOpen(false)} className="block px-4 py-2.5 text-sm text-gray-700 hover:bg-[#FF385C]/10 hover:text-[#FF385C] transition">Help Center</Link>
                       <hr className="my-1 border-gray-100" />
                       <button onClick={() => { logout(); setIsProfileMenuOpen(false); }} className="w-full text-left block px-4 py-2.5 text-sm text-[#FF385C] hover:bg-[#FF385C]/10 font-medium transition">Log out</button>
                     </>

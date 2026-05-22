@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { usePackages } from '../hooks/usePackages';
 import PackageCard from '../components/PackageCard';
 import PackageCardSkeleton from '../components/PackageCardSkeleton';
@@ -8,13 +9,21 @@ import { useTheme } from '../context/ThemeContext';
 
 const Packages = () => {
   const { isDarkMode } = useTheme();
+  const [searchParams] = useSearchParams();
   const { data: packages, meta, loading, error, filters, updateFilter, removeFilter, loadMore, fetchPackages } = usePackages();
   const [searchInput, setSearchInput] = useState(filters.search);
   const [destinations, setDestinations] = useState([]);
+  const queryType = searchParams.get('type');
   
   useEffect(() => {
     setDestinations(['Goa', 'Manali', 'Kerala', 'Dubai', 'Paris', 'Maldives', 'Thailand']);
   }, []);
+
+  useEffect(() => {
+    if (queryType && filters.type !== queryType) {
+      updateFilter('type', queryType);
+    }
+  }, [queryType, filters.type, updateFilter]);
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -38,7 +47,7 @@ const Packages = () => {
           </p>
           
           <div className={`max-w-3xl mx-auto relative group shadow-xl rounded-full border ${isDarkMode ? 'border-gray-800 bg-gray-900' : 'border-gray-200 bg-white'}`}>
-            <div className="absolute inset-y-0 left-0 pl-5 flex items-center pointer-events-none text-[#FF385C]">
+            <div className="absolute inset-y-0 left-0 pl-5 flex items-center pointer-events-none text-primary">
               <Search size={22} strokeWidth={2.5} />
             </div>
             <input
@@ -55,7 +64,7 @@ const Packages = () => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 flex flex-col md:flex-row gap-8">
         <div className="w-full md:w-1/4">
           <div className={`p-6 rounded-3xl shadow-sm border sticky top-28 ${isDarkMode ? 'bg-gray-900 border-gray-800' : 'bg-white border-gray-100'}`}>
-            <h2 className={`text-xl font-bold mb-6 flex items-center gap-2 ${isDarkMode ? 'text-gray-100' : 'text-gray-900'}`}><Filter size={20} className="text-[#FF385C]"/> Filters</h2>
+            <h2 className={`text-xl font-bold mb-6 flex items-center gap-2 ${isDarkMode ? 'text-gray-100' : 'text-gray-900'}`}><Filter size={20} className="text-primary"/> Filters</h2>
             
             <div className="mb-6">
               <label className={`block text-sm font-bold mb-2 ${isDarkMode ? 'text-gray-300' : 'text-gray-900'}`}>Max Budget (₹{Number(filters.budget_max).toLocaleString('en-IN')})</label>
@@ -66,7 +75,7 @@ const Packages = () => {
                 step="1000"
                 value={filters.budget_max}
                 onChange={(e) => updateFilter('budget_max', e.target.value)}
-                className="w-full accent-[#FF385C]"
+                className="w-full accent-primary"
               />
             </div>
 
@@ -75,7 +84,7 @@ const Packages = () => {
               <select 
                 value={filters.destination} 
                 onChange={(e) => updateFilter('destination', e.target.value)} 
-                className={`w-full p-3 border rounded-xl font-semibold focus:ring-2 focus:ring-[#FF385C]/20 focus:border-[#FF385C] outline-none transition ${isDarkMode ? 'bg-gray-800 border-gray-700 text-gray-100' : 'bg-gray-50 border-gray-200 text-gray-900'}`}
+                className={`w-full p-3 border rounded-xl font-semibold focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition ${isDarkMode ? 'bg-gray-800 border-gray-700 text-gray-100' : 'bg-gray-50 border-gray-200 text-gray-900'}`}
               >
                 <option value="">Any Destination</option>
                 {destinations.map(d => <option key={d} value={d}>{d}</option>)}
@@ -97,7 +106,7 @@ const Packages = () => {
                       name="duration" 
                       checked={filters.duration === opt.val}
                       onChange={() => updateFilter('duration', opt.val)}
-                      className="text-[#FF385C] focus:ring-[#FF385C] w-4 h-4 cursor-pointer"
+                      className="text-primary focus:ring-primary w-4 h-4 cursor-pointer"
                     />
                     <span className={`font-semibold text-sm transition-colors ${isDarkMode ? 'text-gray-400 group-hover:text-white' : 'text-gray-700 group-hover:text-gray-900'}`}>{opt.label}</span>
                   </label>
@@ -114,7 +123,7 @@ const Packages = () => {
                       type="checkbox" 
                       checked={filters.type === type}
                       onChange={() => updateFilter('type', filters.type === type ? '' : type)}
-                      className="rounded text-[#FF385C] focus:ring-[#FF385C] w-4 h-4 cursor-pointer"
+                      className="rounded text-primary focus:ring-primary w-4 h-4 cursor-pointer"
                     />
                     <span className={`font-semibold text-sm transition-colors ${isDarkMode ? 'text-gray-400 group-hover:text-white' : 'text-gray-700 group-hover:text-gray-900'}`}>{type}</span>
                   </label>
@@ -127,7 +136,7 @@ const Packages = () => {
               <select 
                 value={filters.sort} 
                 onChange={(e) => updateFilter('sort', e.target.value)} 
-                className={`w-full p-3 border rounded-xl font-semibold focus:ring-2 focus:ring-[#FF385C]/20 focus:border-[#FF385C] outline-none transition ${isDarkMode ? 'bg-gray-800 border-gray-700 text-gray-100' : 'bg-gray-50 border-gray-200 text-gray-900'}`}
+                className={`w-full p-3 border rounded-xl font-semibold focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition ${isDarkMode ? 'bg-gray-800 border-gray-700 text-gray-100' : 'bg-gray-50 border-gray-200 text-gray-900'}`}
               >
                 <option value="">Newest</option>
                 <option value="price_asc">Price: Low to High</option>
@@ -142,9 +151,9 @@ const Packages = () => {
         <div className="w-full md:w-3/4">
           <div className="flex flex-wrap gap-2 mb-6">
             {activeFilterChips.map(([key, val]) => (
-              <div key={key} className="bg-[#FF385C]/10 text-[#FF385C] text-sm font-bold px-4 py-2 rounded-full flex items-center gap-2 border border-[#FF385C]/20 shadow-sm">
+              <div key={key} className="bg-primary/10 text-primary text-sm font-bold px-4 py-2 rounded-full flex items-center gap-2 border border-primary/20 shadow-sm">
                 <span className="capitalize">{key}: {val}</span>
-                <button onClick={() => removeFilter(key)} className="hover:bg-[#FF385C]/20 p-1 rounded-full transition-colors"><X size={14} /></button>
+                <button onClick={() => removeFilter(key)} className="hover:bg-primary/20 p-1 rounded-full transition-colors"><X size={14} /></button>
               </div>
             ))}
           </div>

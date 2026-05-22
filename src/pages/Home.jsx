@@ -99,7 +99,7 @@ const Home = () => {
                 <div className="space-y-4">
                   <div className="flex justify-between items-center pb-3 border-b border-gray-800/10">
                     <span className="font-semibold text-gray-500">Backend Engine</span>
-                    <span className="font-extrabold text-right text-xs bg-emerald-500/10 text-emerald-500 px-2.5 py-1 rounded-full border border-emerald-500/20">Laravel 11 (Active)</span>
+                    <span className="font-extrabold text-right text-xs bg-emerald-500/10 text-emerald-500 px-2.5 py-1 rounded-full border border-emerald-500/20">Laravel 13 (Active)</span>
                   </div>
                   <div className="flex justify-between items-center pb-3 border-b border-gray-800/10">
                     <span className="font-semibold text-gray-500">Database Connection</span>
