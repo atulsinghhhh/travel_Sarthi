@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { bookingService } from '../../services/booking.service';
 import { couponService } from '../../services/coupon.service';
 import toast from 'react-hot-toast';
 
-const BookingSidebar = ({ pricePerNight }) => {
+const BookingSidebar = ({ hotelId, pricePerNight }) => {
   const navigate = useNavigate();
   const [checkIn, setCheckIn] = useState('');
   const [checkOut, setCheckOut] = useState('');
@@ -58,13 +59,27 @@ const BookingSidebar = ({ pricePerNight }) => {
   const taxes = Math.round(discountedBase * 0.1); // 10% tax
   const total = discountedBase + taxes;
 
-  const handleReserve = () => {
+  const handleReserve = async () => {
     if (!checkIn || !checkOut) {
       toast.error('Please select check-in and check-out dates.');
       return;
     }
-    toast.success('Reservation requested successfully! Our host will confirm your dates shortly.');
-    navigate('/dashboard/bookings');
+
+    try {
+      await bookingService.create({
+        hotel_id: hotelId,
+        booking_type: 'hotel',
+        start_date: checkIn,
+        end_date: checkOut,
+        total_amount: total,
+        coupon_code: discountPercent > 0 ? couponCode : null,
+      });
+
+      toast.success('Reservation requested successfully! Our host will confirm your dates shortly.');
+      navigate('/dashboard/bookings');
+    } catch (error) {
+      toast.error(error.response?.data?.message || 'Failed to create reservation');
+    }
   };
 
   return (
@@ -82,7 +97,7 @@ const BookingSidebar = ({ pricePerNight }) => {
               type="date" 
               value={checkIn}
               onChange={(e) => setCheckIn(e.target.value)}
-              className="w-full bg-gray-50 border border-gray-200 rounded-xl p-3 text-sm text-gray-900 font-semibold focus:bg-white focus:ring-2 focus:ring-[#FF385C]/20 focus:border-[#FF385C] outline-none transition-all"
+              className="w-full bg-gray-50 border border-gray-200 rounded-xl p-3 text-sm text-gray-900 font-semibold focus:bg-white focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all"
             />
           </div>
           <div>
@@ -91,7 +106,7 @@ const BookingSidebar = ({ pricePerNight }) => {
               type="date" 
               value={checkOut}
               onChange={(e) => setCheckOut(e.target.value)}
-              className="w-full bg-gray-50 border border-gray-200 rounded-xl p-3 text-sm text-gray-900 font-semibold focus:bg-white focus:ring-2 focus:ring-[#FF385C]/20 focus:border-[#FF385C] outline-none transition-all"
+              className="w-full bg-gray-50 border border-gray-200 rounded-xl p-3 text-sm text-gray-900 font-semibold focus:bg-white focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all"
             />
           </div>
         </div>
@@ -101,7 +116,7 @@ const BookingSidebar = ({ pricePerNight }) => {
           <select 
             value={guests}
             onChange={(e) => setGuests(Number(e.target.value))}
-            className="w-full bg-gray-50 border border-gray-200 rounded-xl p-3 text-sm text-gray-900 font-semibold focus:bg-white focus:ring-2 focus:ring-[#FF385C]/20 focus:border-[#FF385C] outline-none transition-all appearance-none cursor-pointer"
+            className="w-full bg-gray-50 border border-gray-200 rounded-xl p-3 text-sm text-gray-900 font-semibold focus:bg-white focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all appearance-none cursor-pointer"
           >
             {[1, 2, 3, 4, 5, 6].map(num => (
               <option key={num} value={num}>{num} {num === 1 ? 'Guest' : 'Guests'}</option>
@@ -122,7 +137,7 @@ const BookingSidebar = ({ pricePerNight }) => {
                 onClick={() => handleApplyCoupon(c.code)}
                 className={`text-xs font-bold px-2.5 py-1.5 rounded-lg border transition-all ${
                   couponCode.toUpperCase() === c.code.toUpperCase() && discountPercent > 0
-                    ? 'bg-[#FF385C] text-white border-[#FF385C] shadow-sm'
+                    ? 'bg-primary text-white border-primary shadow-sm'
                     : 'bg-emerald-50 text-emerald-700 border-emerald-200 hover:bg-emerald-100'
                 }`}
               >
@@ -140,7 +155,7 @@ const BookingSidebar = ({ pricePerNight }) => {
           value={couponCode} 
           onChange={(e) => setCouponCode(e.target.value)} 
           placeholder="Enter coupon code" 
-          className="w-full bg-gray-50 border border-gray-200 rounded-xl p-3 text-sm text-gray-900 font-semibold focus:bg-white focus:ring-2 focus:ring-[#FF385C]/20 focus:border-[#FF385C] outline-none uppercase transition-all"
+          className="w-full bg-gray-50 border border-gray-200 rounded-xl p-3 text-sm text-gray-900 font-semibold focus:bg-white focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none uppercase transition-all"
         />
         <button 
           type="button" 
@@ -169,13 +184,13 @@ const BookingSidebar = ({ pricePerNight }) => {
         </div>
         <div className="border-t border-dashed border-gray-200 pt-3 flex justify-between items-center font-bold text-base text-gray-900">
           <span>Total</span>
-          <span className="text-[#FF385C] text-xl font-black">${total}</span>
+          <span className="text-primary text-xl font-black">${total}</span>
         </div>
       </div>
 
       <button 
         onClick={handleReserve}
-        className="w-full py-4 bg-[#FF385C] text-white rounded-xl font-bold text-lg shadow-lg hover:bg-[#D70466] transform hover:-translate-y-0.5 transition-all"
+        className="w-full py-4 bg-primary text-white rounded-xl font-bold text-lg shadow-lg hover:bg-primary-hover transform hover:-translate-y-0.5 transition-all"
       >
         Reserve Now
       </button>

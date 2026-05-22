@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Booking;
+use App\Models\Hotel;
 use App\Models\Package;
 use App\Models\Coupon;
 use Illuminate\Http\Request;
@@ -48,6 +49,7 @@ class PaymentController extends Controller
             'signature' => 'nullable|string',
             'booking_type' => 'required|in:package,hotel,transport',
             'package_id' => 'nullable|exists:packages,id',
+            'hotel_id' => 'nullable|exists:hotels,id',
             'destination_id' => 'nullable|exists:destinations,id',
             'coupon_code' => 'nullable|string',
             'start_date' => 'required|date',
@@ -76,6 +78,7 @@ class PaymentController extends Controller
         $booking = Booking::create([
             'user_id' => $request->user()->id,
             'package_id' => $validated['package_id'] ?? null,
+            'hotel_id' => $validated['hotel_id'] ?? null,
             'destination_id' => $validated['destination_id'] ?? null,
             'total_amount' => $validated['total_amount'],
             'coupon_id' => $couponId,

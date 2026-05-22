@@ -32,21 +32,22 @@ COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 # Set working directory
 WORKDIR /var/www/html
 
-# Copy project files
-COPY . .
+# Copy backend application files from the repository root build context
+COPY backend ./backend
 
 # Grant permissions to Laravel storage and cache directories
-RUN chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache \
-    && chmod -R 775 /var/www/html/storage /var/www/html/bootstrap/cache
+RUN chown -R www-data:www-data /var/www/html/backend/storage /var/www/html/backend/bootstrap/cache \
+    && chmod -R 775 /var/www/html/backend/storage /var/www/html/backend/bootstrap/cache
 
 # Install dependencies (ignoring dev dependencies for production)
+WORKDIR /var/www/html/backend
 RUN composer install --no-interaction --optimize-autoloader --no-dev
 
 # Expose port (Render sets $PORT dynamically, we will handle this in start.sh)
 EXPOSE 80
 
 # Copy start script
-COPY start.sh /usr/local/bin/start.sh
+COPY backend/start.sh /usr/local/bin/start.sh
 RUN chmod +x /usr/local/bin/start.sh
 
 # Run start script on container launch

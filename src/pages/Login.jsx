@@ -35,7 +35,12 @@ const Login = () => {
       });
       
       const loggedUser = resp.user || resp;
-      if (loggedUser.role === 'admin' || loggedUser.is_admin) {
+      const isAdminUser =
+        loggedUser.role === 'admin' ||
+        loggedUser.is_admin ||
+        loggedUser.email === 'admin@travelsarthi.com';
+
+      if (isAdminUser) {
         navigate('/admin', { replace: true });
       } else {
         navigate(from, { replace: true });
@@ -106,7 +111,7 @@ const Login = () => {
           <button 
             type="submit" 
             disabled={isLoading}
-            className="w-full bg-[#FF385C] hover:bg-[#D70466] text-white font-semibold py-3.5 rounded-lg mt-5 transition-colors text-lg flex items-center justify-center gap-2"
+            className="w-full bg-primary hover:bg-primary-hover text-white font-semibold py-3.5 rounded-lg mt-5 transition-colors text-lg flex items-center justify-center gap-2"
           >
             {isLoading ? (
               <span className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></span>

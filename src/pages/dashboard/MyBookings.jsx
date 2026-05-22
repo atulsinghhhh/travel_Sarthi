@@ -75,9 +75,13 @@ const MyBookings = () => {
           {bookings.map(booking => (
             <div key={booking.id} className="bg-white rounded-2xl border border-gray-200 overflow-hidden flex flex-col md:flex-row hover:shadow-lg transition-shadow duration-300">
               
-              <div className="w-full md:w-1/3 h-48 md:h-auto bg-gray-100 flex-shrink-0 relative">
-                {booking.package?.image ? (
-                  <img src={booking.package.image} alt={booking.package.title} className="w-full h-full object-cover" />
+              <div className="w-full md:w-1/3 h-48 md:h-auto bg-gray-100 shrink-0 relative">
+                {(booking.package?.image || booking.hotel?.image || booking.hotel?.images?.[0]) ? (
+                  <img
+                    src={booking.package?.image || booking.hotel?.image || booking.hotel?.images?.[0]}
+                    alt={booking.package?.title || booking.hotel?.name || 'Booking'}
+                    className="w-full h-full object-cover"
+                  />
                 ) : (
                   <div className="w-full h-full flex items-center justify-center text-gray-400">No Image</div>
                 )}
@@ -86,13 +90,13 @@ const MyBookings = () => {
                 </div>
               </div>
 
-              <div className="p-6 md:p-8 flex-grow flex flex-col justify-between">
+              <div className="p-6 md:p-8 grow flex flex-col justify-between">
                 <div>
                   <p className="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-2">Entire trip</p>
-                  <h2 className="text-2xl font-bold text-gray-900 mb-4">{booking.package?.title}</h2>
+                  <h2 className="text-2xl font-bold text-gray-900 mb-4">{booking.package?.title || booking.hotel?.name || 'Booking'}</h2>
                   
                   <div className="space-y-3 text-gray-600 mb-6">
-                    <div className="flex items-center gap-3"><MapPin className="text-gray-400 w-5 h-5"/> <span>{booking.package?.destination}</span></div>
+                    <div className="flex items-center gap-3"><MapPin className="text-gray-400 w-5 h-5"/> <span>{booking.package?.destination || booking.hotel?.location || booking.hotel?.city}</span></div>
                     <div className="flex items-center gap-3"><Calendar className="text-gray-400 w-5 h-5"/> <span>{booking.start_date} to {booking.end_date}</span></div>
                   </div>
                 </div>
